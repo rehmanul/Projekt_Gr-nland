@@ -1,0 +1,21 @@
+{
+  "name": "projekt-groenland",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "frontend",
+    "cms"
+  ],
+  "scripts": {
+    "dev": "concurrently \"pnpm --filter backend dev\" \"pnpm --filter frontend dev\"",
+    "build": "pnpm --filter backend build && pnpm --filter frontend build",
+    "test": "pnpm --filter backend test && pnpm --filter frontend test",
+    "migration:export": "node scripts/migration/export.js",
+    "migration:import": "node scripts/migration/import.js",
+    "deploy:production": "bash scripts/deployment/deploy.sh"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
