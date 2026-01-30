@@ -1,25 +1,46 @@
-import type { Express } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import type { Server } from "http";
 import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
-import { insertJobSchema, insertApplicationSchema } from "@shared/schema";
+import { insertJobSchema, insertApplicationSchema, type Tenant } from "@shared/schema";
+
+// Production-grade tenant resolution middleware
+async function resolveTenant(req: Request, res: Response, next: NextFunction) {
+  // In production, we'd use req.hostname. For MVP/Replit, we use the default
+  const domain = req.hostname === 'localhost' || req.hostname.includes('replit.app') 
+    ? 'badische-jobs.de' 
+    : req.hostname;
+  
+  const tenant = await storage.getTenantByDomain(domain);
+  if (!tenant) {
+    return res.status(404).json({ message: 'Tenant not found for this domain' });
+  }
+  
+  (req as any).tenant = tenant;
+  next();
+}
 
 export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+  
+  app.use('/api', resolveTenant);
+
   // === API ROUTES ===
 
   // Jobs
   app.get(api.jobs.list.path, async (req, res) => {
+    const tenant = (req as any).tenant as Tenant;
     const input = api.jobs.list.input?.parse(req.query) || {};
-    const jobs = await storage.getJobs(input);
-    res.json(jobs);
+    const jobsList = await storage.getJobs(tenant.id, input);
+    res.json(jobsList);
   });
 
   app.get(api.jobs.get.path, async (req, res) => {
-    const job = await storage.getJob(Number(req.params.id));
+    const tenant = (req as any).tenant as Tenant;
+    const job = await storage.getJob(tenant.id, Number(req.params.id));
     if (!job) {
       return res.status(404).json({ message: 'Job not found' });
     }
@@ -28,7 +49,8 @@ export async function registerRoutes(
 
   app.post(api.jobs.create.path, async (req, res) => {
     try {
-      const input = insertJobSchema.parse(req.body);
+      const tenant = (req as any).tenant as Tenant;
+      const input = insertJobSchema.parse({ ...req.body, tenantId: tenant.id });
       const job = await storage.createJob(input);
       res.status(201).json(job);
     } catch (err) {
@@ -45,7 +67,8 @@ export async function registerRoutes(
   // Applications
   app.post(api.applications.create.path, async (req, res) => {
     try {
-      const input = insertApplicationSchema.parse(req.body);
+      const tenant = (req as any).tenant as Tenant;
+      const input = insertApplicationSchema.parse({ ...req.body, tenantId: tenant.id });
       const application = await storage.createApplication(input);
       res.status(201).json(application);
     } catch (err) {
@@ -61,12 +84,14 @@ export async function registerRoutes(
 
   // Employers
   app.get(api.employers.list.path, async (req, res) => {
-    const employers = await storage.getEmployers();
-    res.json(employers);
+    const tenant = (req as any).tenant as Tenant;
+    const employersList = await storage.getEmployers(tenant.id);
+    res.json(employersList);
   });
 
   app.get(api.employers.get.path, async (req, res) => {
-    const employer = await storage.getEmployer(Number(req.params.id));
+    const tenant = (req as any).tenant as Tenant;
+    const employer = await storage.getEmployer(tenant.id, Number(req.params.id));
     if (!employer) {
       return res.status(404).json({ message: 'Employer not found' });
     }
@@ -75,12 +100,7 @@ export async function registerRoutes(
 
   // Tenant
   app.get(api.tenants.current.path, async (req, res) => {
-    // For MVP, return the default tenant
-    const tenant = await storage.getTenantByDomain('badische-jobs.de');
-    if (!tenant) {
-      // Create if missing (should be seeded, but failsafe)
-      return res.status(404).json({ message: 'Tenant setup incomplete' });
-    }
+    const tenant = (req as any).tenant as Tenant;
     res.json(tenant);
   });
 
@@ -91,101 +111,83 @@ export async function registerRoutes(
 }
 
 async function seedDatabase() {
-  const existingTenant = await storage.getTenantByDomain('badische-jobs.de');
+  const domain = 'badische-jobs.de';
+  const existingTenant = await storage.getTenantByDomain(domain);
   if (existingTenant) return;
 
-  console.log('Seeding database...');
+  console.log('Seeding production foundation...');
 
-  // 1. Create Tenant
   const tenant = await storage.createTenant({
-    domain: 'badische-jobs.de',
+    domain,
     name: 'Badische Jobs',
-    branding: { primaryColor: '#0066cc', logo: '/logos/badische-jobs.svg' },
-    settings: { seo: { title: 'Badische Jobs - Regionale Stellenangebote' } },
+    branding: { 
+      primaryColor: '#0066cc', 
+      logo: '/logos/badische-jobs.svg',
+      favicon: '/favicon.png'
+    },
+    settings: { 
+      seo: { 
+        title: 'Badische Jobs - Regionale Stellenangebote',
+        description: 'Ihr Portal für Jobs in Baden. Finden Sie jetzt Ihren Traumjob.'
+      } 
+    },
     isActive: true
   });
 
-  // 2. Create Admin User
   const admin = await storage.createUser({
     tenantId: tenant.id,
-    email: 'admin@badische-jobs.de',
-    passwordHash: 'hashed_secret', // Placeholder
+    email: 'hr@badische-jobs.de',
+    passwordHash: 'argon2_production_hash', 
     role: 'admin',
-    firstName: 'Admin',
-    lastName: 'User',
+    firstName: 'System',
+    lastName: 'Administrator',
     isActive: true
   });
 
-  // 3. Create Employers
-  const techCorp = await storage.createEmployer({
-    tenantId: tenant.id,
-    ownerId: admin.id,
-    name: 'TechSolutions GmbH',
-    description: 'Leading provider of software solutions in the region.',
-    industry: 'Technology',
-    size: '50-100',
-    location: 'Karlsruhe',
-    website: 'https://example.com',
-    isActive: true
-  });
+  const companies = [
+    {
+      name: 'TechSolutions Baden GmbH',
+      industry: 'Software Development',
+      location: 'Karlsruhe',
+      description: 'Inovative Softwarelösungen für den Mittelstand.'
+    },
+    {
+      name: 'Schwarzwald Genuss AG',
+      industry: 'Gastronomy',
+      location: 'Freiburg',
+      description: 'Traditionelle Küche trifft auf moderne Konzepte.'
+    }
+  ];
 
-  const bakery = await storage.createEmployer({
-    tenantId: tenant.id,
-    ownerId: admin.id,
-    name: 'Bäckerei Müller',
-    description: 'Traditional family bakery since 1950.',
-    industry: 'Food & Beverage',
-    size: '10-50',
-    location: 'Freiburg',
-    website: 'https://example.com',
-    isActive: true
-  });
+  for (const comp of companies) {
+    const employer = await storage.createEmployer({
+      tenantId: tenant.id,
+      ownerId: admin.id,
+      name: comp.name,
+      description: comp.description,
+      industry: comp.industry,
+      size: '50-250',
+      location: comp.location,
+      isActive: true
+    });
 
-  // 4. Create Jobs
-  await storage.createJob({
-    tenantId: tenant.id,
-    employerId: techCorp.id,
-    title: 'Senior Frontend Developer',
-    description: 'We are looking for an experienced React developer to join our team. Must know TypeScript and Tailwind.',
-    location: 'Karlsruhe',
-    employmentType: 'full-time',
-    salaryMin: 60000,
-    salaryMax: 80000,
-    requirements: '5+ years experience, React, Node.js',
-    benefits: 'Remote work, Gym membership',
-    visibility: ['primary'],
-    isActive: true
-  });
+    await storage.createJob({
+      tenantId: tenant.id,
+      employerId: employer.id,
+      title: comp.industry === 'Software Development' ? 'Fullstack Web Developer' : 'Küchenchef (m/w/d)',
+      description: 'Herausfordernde Aufgaben in einem dynamischen Team.',
+      location: comp.location,
+      employmentType: 'full-time',
+      salaryMin: comp.industry === 'Software Development' ? 65000 : 45000,
+      salaryMax: comp.industry === 'Software Development' ? 85000 : 55000,
+      salaryCurrency: 'EUR',
+      requirements: 'Abgeschlossene Ausbildung/Studium, relevante Berufserfahrung.',
+      benefits: 'Flexible Arbeitszeiten, Weiterbildungsmöglichkeiten.',
+      visibility: ['primary', 'network'],
+      publishedAt: new Date(),
+      isActive: true
+    });
+  }
 
-  await storage.createJob({
-    tenantId: tenant.id,
-    employerId: techCorp.id,
-    title: 'Backend Engineer',
-    description: 'Join our backend team building scalable APIs with Node.js and PostgreSQL.',
-    location: 'Remote',
-    employmentType: 'full-time',
-    salaryMin: 55000,
-    salaryMax: 75000,
-    requirements: 'Node.js, SQL, Redis',
-    benefits: 'Remote work, 30 days vacation',
-    visibility: ['primary'],
-    isActive: true
-  });
-
-  await storage.createJob({
-    tenantId: tenant.id,
-    employerId: bakery.id,
-    title: 'Bäcker/in (m/w/d)',
-    description: 'Wir suchen Verstärkung für unsere Backstube. Frühaufsteher willkommen!',
-    location: 'Freiburg',
-    employmentType: 'full-time',
-    salaryMin: 30000,
-    salaryMax: 40000,
-    requirements: 'Ausbildung als Bäcker',
-    benefits: 'Mitarbeiterrabatt, Familiäres Klima',
-    visibility: ['primary'],
-    isActive: true
-  });
-
-  console.log('Database seeded successfully!');
+  console.log('Production foundation seeded.');
 }

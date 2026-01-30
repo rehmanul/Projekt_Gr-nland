@@ -12,6 +12,10 @@ export const errorSchemas = {
   validation: z.object({
     message: z.string(),
     field: z.string().optional(),
+    code: z.string().optional(),
+  }),
+  unauthorized: z.object({
+    message: z.string(),
   }),
   notFound: z.object({
     message: z.string(),
@@ -51,6 +55,7 @@ export const api = {
       responses: {
         201: z.custom<typeof jobs.$inferSelect>(),
         400: errorSchemas.validation,
+        401: errorSchemas.unauthorized,
       },
     },
   },

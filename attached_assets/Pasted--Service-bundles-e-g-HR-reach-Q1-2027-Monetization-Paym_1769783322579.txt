@@ -1,0 +1,660 @@
+® Service bundles ( e.g. HR + reach)
+Q1 2027 - Monetization & Payments
+Goal: Growth without linear costs
+7% 2027 - Monetization & Scale
+Goal: Increase revenue per customer
+Goal: Expand HR SaaS
+Key areas
+Key areas
+Key areas
+* Reporting & Analytics for customers
+Q2 2027 - Vertical HR Services
+® Scalable SaaS Revenue Model
+Outcome
+® Extended ATS Functions
+® Transparent Billing
+e Payment Service Provider Integration
+¢ Add-On & Upsell Logic
+* Reusable portal templates
+® Platform becomes HR hub
+API integration of external HR tools
+* Feature-Toggles for the Mandant
+® Content & Page Builder
+Outcome
+* White-label capability ( reimagined)
+® Screening / Pre-Selection Services
+e Measurable ARPU increase
+e Erhohter Lock-in
+Q3 2027 - Portal Factory
+Outcome
+Machine Translated by Google
+Goal: Attractiveness
+e High-performance platform
+® Hobher strategic platform value
+* New portals in days instead of months
+KPI transparency (ARPU, churn, level of automation)
+® Documentation & Architecture Readiness
+* Optional integration paths
+® Technical & organizational decoupling
+® Manages Equity Value
+Q4 2027 - Readiness & Optimization
+Outcome
+Key areas
+Machine Translated by Google
+Tracking & Basis-Analytics
+Authentication & Role Model
+(Working basis for Product Owner & Product Team)
+Future Ready ein
+o No loss of traffic or revenue
+* Low-risk migration possible
+* Client competence (basic)
+® Focus on epics / capability levels, not individual features
+White -label technically replaceable
+First customer pilot migration
+® URL & SEO-Strategy
+® Data model for existing customers
+* Basis for migration created
+Key areas
+Key areas
+® Portal Platform Core (proprietary architecture)
+Q1 2026 - Platform Foundation
+Ad & Account Migration
+* Own platform operational
+* Each phase contributes to autonomy monetization
+Q2 2026 - Migration Enablement
+@ Quarterly Roadmap 2026-2027
+Structure
+%% 2026 - Foundation & Transition
+Goal: To safely transfer existing customers
+Goal: To create technological independence
+® Migrations- & Parallelbetriebslogik
+API-First Integrationslayer
+Outcome
+Outcome
+Machine Translated by Google
+Key areas
+Key areas
+Q3 2026 - HR Core Entry
+® Support Reduction Features
+® First true HR SaaS offering
+® Customer acceptance validated
+Internal admin tools reduce manual work
+e Customer self-service portal (contracts, invoices, advertisements)
+® Process Automation
+Clear added value beyond advertisements
+o platform economically stable
+* Basic billing & package logic
+Goal: Reduce costs , prepare for scaling
+Goal: To move away from simply posting job- related content
+* Application Tracking / Bewerbermanagement (MVP)
+* HR-Basis-Workflows
+® Candidate Management
+Outcome
+Outcome
+® Reduced service effort
+Q4 2026 - Self-Service & Efficiency
+Machine Translated by Google
+Arbekgrber emtiodun E e
+Domain: www.pfaelzer-jobs.de ( enter directly into the URL bar with www. without https - no SSL has
+been purchased yet)
+From NDEV 's offer
+NDEV Development Studio
+"Quick MVP" Pfalzer-jobs.de
+Frontend ELB link http://frontend-2023547862.eu-central-1.elb.amazonaws.com/
+Not a cloud / AI copy, but one already designed with an architecture for copying.
+. Autidsnginden Isteünden
+Instead of wanderlust - your next job is closer than you think
+Summary why the MVP is the right foundation
+e The same user roles
+e The same workflows
+The MVP is already built with:
+® The same core entities
+® Compatible architecture for multi-portal expansion
+®_ Clean integration pathways
+Machine Translated by Google
+This is exactly what a scalable, multi-region job portal platform requires.
+® Content management and SEO points
+®_ Flexibility for portal-level customization
+The MVP is not a prototype; it is the technical nucleus for the full Greenland platform.
+Machine Translated by Google
+Quick 1:1 copy.
+Initial situation
+Decision note - Project "Gronland"
+The project is scheduled for completion in Q1 2026 .
+Recruiting NOW plans to replace the existing Jobiqo portals with its own job portal system.
+® nextaim demonstrated very high architectural expertise, but is not an implementation partner for a
+* Experience with data migration
+The following criteria were prioritized for the selection :
+Result of the provider evaluation
+® Sprint-based implementation with defined acceptance criteria
+Rating scale
+The goal of the first phase is an exact 1:1 copy of badische-jobs.de including migration, without
+functional extensions ("Jobigo Basic").
+(Job portal redevelopment + migration, phase , Basic")
+* DevGrid deliberately does not follow a fixed-price model and does not address the updated scope .
+As part of the tender process, several suppliers were interviewed technically and offers were
+solicited.
+® ndev meets all core requirements:
+® Ability to create a 1:1 copy of an existing portal
+* Fixed price model with clear milestones
+® No unnecessary functional or architectural overdevelopment
+® Clear communication, sprint logic, approval processes
+® clear understanding of the basic scope
+® Fixed price offer
+® structured migration approach
+®_ Realistic Timeline (Q1 2026)
+Machine Translated by Google
+@ Goals
+# Project name
+Project start
+Enter the date for the first meeting
+Enter the project name
+Product Manager
+= Department / Team
+Head of Software Development
+Sascha Schmidt
+® Timeline & Key Milestones
+22 Key Stakeholders
+* Ziel1
+With
+3
+Q
+Q Name
+* Goal 3
+What does success look like? What do we want to achieve?
+Jan Meyer
+* Goal 2
+2
+Designer
+# Project Overview
+A brief summary of the project, its purpose and its background.
+® Start date
+1
+<
+Lisa Müller
+Machine Translated by Google
+in
+I Vv
+. B Q
+3 records +
+What is included in the scope (and optionally excluded ) of this project?
+Next steps and immediate measures
+A. Risks and assumptions
+You"e
+First task _
+®_ Not included : Redesign of the legacy module
+* Assumption : Stakeholders provide feedback within 48 hours
+4 Communication plan
+3 =
+® Risk : Possible delays in API availability
+How do we stay informed ?
+® Slack for daily updates
+Point 2
+Point 1
+&8 »
+Neeks
+=
+g 19 26 2 9
+* Monthly stakeholder reviews
+* Included in the scope : Function A, Integration B
+* Weekly stand-up meetings
+© Scope & Results
+Machine Translated by Google
++ Have customars sakd they woukd pay, 04 just that they Wr K?
++ A cumamers almady paying Indiractiy (e, ineMeiency, . party ool
+Markec
+e Competitars charging for something similar?
+i /ra
+= -
+-
+o -
+nn
+Pricing Power
++ Ha much mara would customers realisticatly pay?
+P Whal the vak Wl
+cuntenmars pay mer fer thi ere?
+= ms
++ Doss this foature dlaarly autperfarm altammakives 3t Ea price?
+=
+=
+Monetization impact e me a
+S a + an upsel / promien eature? + a
+resereion dra
++ 3 daakclosar austomars? for now
+amn
+What is the benefit of fasting?
+R
+S
+-
+=
+=
+RE
+=
+Machine Translated by Google
+Is Portal
+Machine Translated by Google
+SE ÖEr e VE ELE e a =
+Machine Translated by Google
+I
+Products, rights,
+B ÖE e =
+Portal live is
+N
+*
+Domain
+branding,
+content / landing
+pages , published
+jobs, visibility rules (including network)
+Approach)
++ Consider indices tenant_id
++ Mature migration tools,
++ No frontend access, only via
+- Portal #1 will be built as a foundation , not as a standalone solution.
++ Tenant is a central architectural element, even if only one is present in Phase 1.
+m
++ Migration capability by mid- 2027
+Employer-Profile
++ API-first (REST/JSON),
+fits cleanly with Next.js
+Consumer of the backend API
++ You want platform
+ownership , self-hosted is
+suitable for your
+own platform (no vendor
+lock-in as
+a core dependency)
+(Tenant) and visibility
+Important for you (Guardrails,
+regardless of the specific hosting provider):
+Customers/Organizations,
+Communication & Foundation
+REST-API
++ Indizes/Constraints
+Employer-Profile,
+IN
++ A backend
++ A platform
++ Very good for classical
++ Architecture is crucial for:
++ All read and write access is via
+the REST API.
++ Every request is processed in
++ A frontend
+» Clean multi-tenant
++ Media management
++ Why (suitable for
+your requirements ): +
+Landing pages and
+content differ per portal ;
+the CMS must be tenantaware (e.g. , content
+separable by tenant )
++ Product-based publishing (subscription
+or single ad)
++ Tenant as a first-class concept
++ Goal: to add more portals later without rebuilding or copying
++ Versionierung/Preview/Workflow
+(mind. Draft/Publish)
++ Multi-Tenant-Foundation
++ Phase 1: 1 Portal
+live
++ Separation of Owner, Portal
++ Search, domains and employer
++ Migration repeatable (Factory-
++ The frontend is pure
+Backend:
+- assigned to a tenant +
+checked against product,
+publishing , and visibility
+rules
++ Each tenant-specific entity carries
+a tenant_id
+- Phase 2+: further
+"
+- No direct access to the
+Database (Backend)
+Implementation via tenant_id
+Must-have criteria for a CMS:
+Recommendation: PostgreSQL
+Platform data: Jobs,
+%
+Hees Em He
+Scopes: Strapi or Directus
+Zielarchitektur Uberblick
+Frontends on data storage
+or search
+Portals
+as additional tenants
+Why ( suitable for your
+architecture ):
+(Performance + Isolation)
+Frontend-BackendCMS for landing pages L ¥Visibility rules
+" In
+Profile tenant-aware
+Stable operation, very easy
+to test
+Recommendation: Headless
+CMS (self-hosted) with tenantKey messages
++ Scalability
++ Maintenance and operating costs
+Minimale Foundation in Phase 1
+Differences between portals:
+Machine Translated by Google
+Screenshots Portal
+u
+Folder containing backlog, screenshots, and migration data storage
+Data structure / Exports for migration ( not yet complete)
+Briefing templates: Request for Quotation (high- level scope,
+vision , etc.), Sheet "Proposals Project Greenland 2nd
+round" contains the packages as a single spreadsheet
+for download as a
+PDF. ffittps:I/drive.gggglg.ggm/grivg/g/g/fglggrw gzM@l (https://drive.google.com/drive/folders/1hTmSSsal)
+(https://drive.google.com/drive/u/0/folders/114tXG)
+Filing Offers
+(https:/drive.google.com/drive/u/0/folders/1 mmg\
+Machine Translated by Google
+In Progress
+Planned
+-
+Machine Translated by Google
+i
+Suckers Sworn 1 5 Under revision 1
+Dev 2
+onhoid Blocker @
+=
+.. and and [ °
+Machine Translated by Google
+New to working with Kanban?
+Kanban-Framework
+Get expert advice from the @) Ki
+colleague for Agile Coaching
+to learn more about Kanban
+principles and practices .
+Machine Translated by Google
+To capture emotions or the approval of your
+team
+Interactive stickers
+Use interactive stickers to quickly gather feedback,
+Machine Translated by Google
+Q1227
+Machine Translated by Google
+Machine Translated by Google
+- ..
+Machine Translated by Google
+Is Portal
+Machine Translated by Google
+https://docs.google.com/spreadsheets/d/10TV... 7
+Google Docs Updated 15-12-2025 @ 22:48 GMT+06:00
+Machine Translated by Google
+Machine Translated by Google
+g Legend *
+Ini Talent Management Platform for SMEs - Multi-Portal Setup
+Expansion stage of the talent management platform for SMEs
+" S =
+Machine Translated by Google
+Machine Translated by Google
+Italian
+Go. mlogic is a
+va er for
+the project, offeMachine Translated by Google
+No direct CMS access from the frontend without
+Headless CMS with a consistent API- first approach
+CMS implementation
+Technology
+the
+Self -hosted operation for full data sovereignty
+No monolithic page builder in the system
+Use exclusively for content and SEO purposes
+Backend control
+Machine Translated by Google
+Evaluations across both portals
+Portals without a common basis
+® Expensive aggregation required for
+® Subsequent modification of the data model
+will be expensive and risky.
+® Portal 2 will be copied or rebuilt
+® Network jobs are only possible with
+duplicates in both portals .
+® SEO and operational problems at large
+Risks without
+these
+Foundation
+Machine Translated by Google
+Differences between
+Multi-Tenant-Foundation
+&in Frontend
+&in Backend
+Phase 2+: additional portals as supplementary
+Gesamtiiberblick
+A platform
+Rollout
+Phase 1: 1 Portal live (badische-jobs.de)
+Tenants
+8omain }nhalte / Landingpages yerpublite Jobs
+8randing
+Visibility rules
+The portal
+&mployer-Profile
+Machine Translated by Google
+Portal
+and serves as the basis for all further
+Conclusion
+Portal 1 is being built as a foundation .
+® More portals are being configured,
+not copied, for maximum efficiency
+Architecture through future-proof
+Migration by mid- 2027 remains
+realistic through structured measures .
+planning
+® Architecture avoids later reProcedure
+Machine Translated by Google
+® Search implemented in a tenant-safe and
+extensible manner
+® Clear separation between owner, portal and
+visibility
+* Configurable branding and content per tenant
+Portal 1
+Minimal
+Foundation cyst
+[ z < z w =
+VISIBILITY
+® Tenant as a first-class concept with its
+own domain identity
+® Product-based publishing rules for targeted
+publishing
+OWNER
+Machine Translated by Google
+Platform core
+® Platform prepared for integration
+Payment
+processing phase 2
+Payment providers connected, no
+Payment function not part of Phase e M
+® Offers include scope and costs
+Machine Translated by Google
+Changes through automated build and
+deployment processes
+* Ongoing monitoring and error analysis for
+proactive quality assurance
+® Reproducible delivery of
+Operation and
+Quality
+® Separate Dev, Test, Prod environments
+Production quality
+to secure the
+Mechanisms
+® Releasable releases through
+versioned deployments and rollback
+Machine Translated by Google
+Mechanisms
+cached for faster
+® Public content will
+Pexformance and
+Stability
+To ensure fast loading times
+® Access is controlled and limited
+to ensure fair use .
+® Protection against peak loads and misuse
+through intelligent rate limiting
+Availability despite partial failures
+through redundant systems and failover
+The strategy
+Machine Translated by Google
+® Scaling is possible on a portal-by-portal
+basis according to individual needs .
+® Search is tenant-safe through
+isolated indexes per portal.
+Search and
+Scaling
+Performance of small portals not
+Consistent search logic across all
+* Large portals influence the
+Across all portals, it is guaranteed
+Machine Translated by Google
+precise performance analyses per channel
+'
+® Aggregated reporting automatically
+prevents duplicate payments via
+® Each job retains a unique
+® Clear portal assignment enables
+Ownexrship und
+Reporting
+Across portals
+/////
+Ownership allocation in the system
+>> > -
+That
+WITH
+Machine Translated by Google
+® Search engines see a canonical
+® Cross-portal searchability possible
+® Visibility follows clear rules
+Job visibility
+network
+Each job has a primary portal.
+® Every job has a unique owner
+Those
+Machine Translated by Google
+and error responses in case of rule violations
+Backend
+Enforcement in
+® All rules are centrally enforced and validated in
+the backend .
+Consumer of backend services
+The backend provides transparent status updates.
+® Frontend acts as a rule-neutral
+Machine Translated by Google
+® Subscription or single ad
+* Publishing is product-based
+® Customer is organizational owner
+* A customer can use multiple portals.
+® Publication only with valid
+Publishing
+customers and
+Logic
+Product
+Machine Translated by Google
+® Basis for portal-wide
+® Same employer can be employed at multiple locations
+® Employer profiles are tenant-aware and
+enable multi-tenant management.
+ensures optimal discoverability
+Employer
+Profile
+be present on portals
+® Different content and products can be
+individually customized for each portal .
+Employer branding and consistent
+Depiction
+® SEO-safe assignment per portal
+Machine Translated by Google
+Separation between structure and content
+Content per portal with the same
+Landing pages
+Contents and
+® Landing pages differ
+® Content is tenant-specific and managed
+individually per portal .
+Centralized care enables clear
+® Same components are used
+Structure
+reused, but with others
+Content felt
+Machine Translated by Google
+Tenant
+Branding
+Domains and
+® Each domain uniquely belongs to a
+® Extensible without hard -coded domains
+® Domain controls branding
+® Domain controls portal identity
+® Domain controls SEO context
+Machine Translated by Google
+® Differences only due to configuration and
+data
+Basics
+Multi Tenant
+® No data or rights mixing
+® Each portal is a separate tenant
+® Server-side enforcement of mapping
+® Each request is clearly assigned to
+a tenant
+Machine Translated by Google
+Backend
+Architect
+Backend
+® Frontend consumes exclusively the
+® Versionierte REST JSON-API
+® Central backend as a platform key
+® Business and Publishing Rules in
+® No direct data access from the
+API
+Frontend
+Machine Translated by Google
+The central configuration controls all portalspecific differences .
+® Assignment is made exclusively via
+® No separate code fork is needed for
+Zuoxdnung in
+Portal
+Frontend
+various portals
+Domain or host
+Machine Translated by Google
+® Next.js LTS as a stable technical
+® Static generation for high-performance ,
+stable content
+® A single frontend codebase for all
+platforms
+® Automatic update for
+Frontend
+Architect
+® Server-side generation for
+dynamic job content
+Basis
+Landing pages and marketing
+Machine Translated by Google
+Architect
+The aim of
+® Avoidance of Re-Architecture-
+* Development of a unified platform for all
+customer portals
+® Central further development of the
+Platform after completion of migration
+Costs after migration from Portal 1
+Migration of all portals to the new architecture by
+mid - 2027
+Machine Translated by Google
+® Focus on architecture, not on the
+Target architecture for the project
+® Establishing a clear
+® Enabling an objective and transparent
+comparison of offers
+Target dex
+Pxasentation
+® Support for strategic
+Architectural decisions
+® Creating a sound basis for supplier
+evaluation
+Procedural model
+Machine Translated by Google
+Machine Translated by Google

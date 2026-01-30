@@ -16,22 +16,22 @@ export interface IStorage {
 
   // User
   getUser(id: number): Promise<User | undefined>;
-  getUserByEmail(email: string): Promise<User | undefined>;
+  getUserByEmail(tenantId: number, email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
 
   // Employer
-  getEmployers(): Promise<Employer[]>;
-  getEmployer(id: number): Promise<Employer | undefined>;
+  getEmployers(tenantId: number): Promise<Employer[]>;
+  getEmployer(tenantId: number, id: number): Promise<Employer | undefined>;
   createEmployer(employer: InsertEmployer): Promise<Employer>;
 
   // Job
-  getJobs(params: { 
+  getJobs(tenantId: number, params: { 
     search?: string; 
     location?: string; 
     employmentType?: string; 
     employerId?: number 
   }): Promise<(Job & { employer: Employer })[]>;
-  getJob(id: number): Promise<(Job & { employer: Employer }) | undefined>;
+  getJob(tenantId: number, id: number): Promise<(Job & { employer: Employer }) | undefined>;
   createJob(job: InsertJob): Promise<Job>;
 
   // Application
@@ -54,8 +54,10 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async getUserByEmail(email: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.email, email));
+  async getUserByEmail(tenantId: number, email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(
+      and(eq(users.tenantId, tenantId), eq(users.email, email))
+    );
     return user;
   }
 
@@ -64,12 +66,14 @@ export class DatabaseStorage implements IStorage {
     return newUser;
   }
 
-  async getEmployers(): Promise<Employer[]> {
-    return await db.select().from(employers);
+  async getEmployers(tenantId: number): Promise<Employer[]> {
+    return await db.select().from(employers).where(eq(employers.tenantId, tenantId));
   }
 
-  async getEmployer(id: number): Promise<Employer | undefined> {
-    const [employer] = await db.select().from(employers).where(eq(employers.id, id));
+  async getEmployer(tenantId: number, id: number): Promise<Employer | undefined> {
+    const [employer] = await db.select().from(employers).where(
+      and(eq(employers.tenantId, tenantId), eq(employers.id, id))
+    );
     return employer;
   }
 
@@ -78,13 +82,13 @@ export class DatabaseStorage implements IStorage {
     return newEmployer;
   }
 
-  async getJobs(params: { 
+  async getJobs(tenantId: number, params: { 
     search?: string; 
     location?: string; 
     employmentType?: string; 
     employerId?: number 
   }): Promise<(Job & { employer: Employer })[]> {
-    const conditions = [];
+    const conditions = [eq(jobs.tenantId, tenantId), eq(jobs.isActive, true)];
 
     if (params.search) {
       conditions.push(
@@ -114,12 +118,13 @@ export class DatabaseStorage implements IStorage {
       })
       .from(jobs)
       .innerJoin(employers, eq(jobs.employerId, employers.id))
-      .where(and(...conditions));
+      .where(and(...conditions))
+      .orderBy(sql`${jobs.publishedAt} DESC NULLS LAST`);
 
     return result.map(row => ({ ...row.job, employer: row.employer }));
   }
 
-  async getJob(id: number): Promise<(Job & { employer: Employer }) | undefined> {
+  async getJob(tenantId: number, id: number): Promise<(Job & { employer: Employer }) | undefined> {
     const [result] = await db
       .select({
         job: jobs,
@@ -127,7 +132,7 @@ export class DatabaseStorage implements IStorage {
       })
       .from(jobs)
       .innerJoin(employers, eq(jobs.employerId, employers.id))
-      .where(eq(jobs.id, id));
+      .where(and(eq(jobs.tenantId, tenantId), eq(jobs.id, id)));
     
     if (!result) return undefined;
     return { ...result.job, employer: result.employer };
