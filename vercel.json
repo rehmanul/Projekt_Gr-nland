@@ -1,0 +1,21 @@
+{
+    "buildCommand": "npm run build",
+    "installCommand": "npm install",
+    "outputDirectory": "dist/public",
+    "rewrites": [
+        {
+            "source": "/api/(.*)",
+            "destination": "/api"
+        },
+        {
+            "source": "/(.*)",
+            "destination": "/index.html"
+        }
+    ],
+    "functions": {
+        "api/index.js": {
+            "runtime": "nodejs20.x",
+            "includeFiles": "dist/index.cjs"
+        }
+    }
+}
