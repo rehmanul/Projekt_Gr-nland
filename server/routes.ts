@@ -8,7 +8,12 @@ import { insertJobSchema, insertApplicationSchema, type Tenant } from "@shared/s
 function resolveTenantMiddleware(storage: IStorage) {
   return async function resolveTenant(req: Request, res: Response, next: NextFunction) {
     const rawHost = req.hostname;
-    const domain = (rawHost === "localhost" || rawHost === "127.0.0.1" || rawHost.includes("replit.app"))
+    const isDevOrPreview =
+      rawHost === "localhost" ||
+      rawHost === "127.0.0.1" ||
+      rawHost.includes("replit.app") ||
+      rawHost.endsWith(".vercel.app");
+    const domain = isDevOrPreview
       ? "badische-jobs.de"
       : rawHost.replace(/^www\./, "") === "pfaelzer-jobs.de"
         ? "www.pfaelzer-jobs.de"
