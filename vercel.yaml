@@ -1,0 +1,15 @@
+buildCommand: npm run build
+installCommand: npm install
+outputDirectory: dist/public
+
+rewrites:
+  # API traffic to serverless function
+  - source: /api/(.*)
+    destination: /api
+  # SPA fallback (static files are served from outputDirectory first)
+  - source: /(.*)
+    destination: /index.html
+
+functions:
+  api/index.js:
+    runtime: nodejs20.x
