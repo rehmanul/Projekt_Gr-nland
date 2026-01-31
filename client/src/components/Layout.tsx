@@ -20,6 +20,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const navItems = [
     { href: "/jobs", label: "Find Jobs" },
     { href: "/companies", label: "Companies" },
+    { href: "/about", label: "About" },
+    { href: "/faq", label: "FAQ" },
   ];
 
   return (
@@ -109,7 +111,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <ul className="space-y-2 text-sm text-slate-500">
                 <li><Link href="/jobs" className="hover:text-primary">Browse Jobs</Link></li>
                 <li><Link href="/companies" className="hover:text-primary">Browse Companies</Link></li>
-                <li><a href="#" className="hover:text-primary">Career Advice</a></li>
+                <li><Link href="/faq" className="hover:text-primary">FAQ</Link></li>
               </ul>
             </div>
 
@@ -117,22 +119,18 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <h4 className="font-semibold mb-4">For Employers</h4>
               <ul className="space-y-2 text-sm text-slate-500">
                 <li><Link href="/post-job" className="hover:text-primary">Post a Job</Link></li>
-                <li><a href="#" className="hover:text-primary">Pricing</a></li>
-                <li><a href="#" className="hover:text-primary">Success Stories</a></li>
+                <li><Link href="/pricing" className="hover:text-primary">Pricing</Link></li>
+                <li><Link href="/about" className="hover:text-primary">About</Link></li>
               </ul>
             </div>
 
             <div>
-              <h4 className="font-semibold mb-4">Contact</h4>
+              <h4 className="font-semibold mb-4">Legal & Contact</h4>
               <ul className="space-y-2 text-sm text-slate-500">
-                <li className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4" />
-                  <span>Karlsruhe, Germany</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <Search className="w-4 h-4" />
-                  <span>support@badische-jobs.de</span>
-                </li>
+                <li><Link href="/contact" className="hover:text-primary">Contact</Link></li>
+                <li><Link href="/imprint" className="hover:text-primary">Impressum</Link></li>
+                <li><Link href="/privacy" className="hover:text-primary">Privacy</Link></li>
+                <li><Link href="/terms" className="hover:text-primary">Terms</Link></li>
               </ul>
             </div>
           </div>

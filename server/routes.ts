@@ -1,32 +1,34 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import type { Server } from "http";
-import { storage } from "./storage";
+import { storage as defaultStorage, initStorage, DatabaseStorage, type IStorage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
 import { insertJobSchema, insertApplicationSchema, type Tenant } from "@shared/schema";
 
-// Production-grade tenant resolution middleware
-async function resolveTenant(req: Request, res: Response, next: NextFunction) {
-  // In production, we'd use req.hostname. For MVP/Replit, we use the default
-  const domain = req.hostname === 'localhost' || req.hostname.includes('replit.app') 
-    ? 'badische-jobs.de' 
-    : req.hostname;
-  
-  const tenant = await storage.getTenantByDomain(domain);
-  if (!tenant) {
-    return res.status(404).json({ message: 'Tenant not found for this domain' });
-  }
-  
-  (req as any).tenant = tenant;
-  next();
+function resolveTenantMiddleware(storage: IStorage) {
+  return async function resolveTenant(req: Request, res: Response, next: NextFunction) {
+    const rawHost = req.hostname;
+    const domain = (rawHost === "localhost" || rawHost === "127.0.0.1" || rawHost.includes("replit.app"))
+      ? "badische-jobs.de"
+      : rawHost.replace(/^www\./, "") === "pfaelzer-jobs.de"
+        ? "www.pfaelzer-jobs.de"
+        : rawHost;
+
+    const tenant = await storage.getTenantByDomain(domain);
+    if (!tenant) {
+      return res.status(404).json({ message: "Tenant not found for this domain" });
+    }
+    (req as any).tenant = tenant;
+    next();
+  };
 }
 
 export async function registerRoutes(
   httpServer: Server,
-  app: Express
+  app: Express,
+  storage: IStorage = defaultStorage
 ): Promise<Server> {
-  
-  app.use('/api', resolveTenant);
+  app.use("/api", resolveTenantMiddleware(storage));
 
   // === API ROUTES ===
 
@@ -34,7 +36,7 @@ export async function registerRoutes(
   app.get(api.jobs.list.path, async (req, res) => {
     const tenant = (req as any).tenant as Tenant;
     const input = api.jobs.list.input?.parse(req.query) || {};
-    const jobsList = await storage.getJobs(tenant.id, input);
+    const jobsList = await storage.getJobs(tenant.id, input as any);
     res.json(jobsList);
   });
 
@@ -104,89 +106,89 @@ export async function registerRoutes(
     res.json(tenant);
   });
 
-  // Seed Data on startup
-  await seedDatabase();
+  if (storage instanceof DatabaseStorage) {
+    await seedDatabase(storage);
+  }
 
   return httpServer;
 }
 
-async function seedDatabase() {
-  const domain = 'badische-jobs.de';
-  const existingTenant = await storage.getTenantByDomain(domain);
-  if (existingTenant) return;
-
-  console.log('Seeding production foundation...');
-
-  const tenant = await storage.createTenant({
-    domain,
-    name: 'Badische Jobs',
-    branding: { 
-      primaryColor: '#0066cc', 
-      logo: '/logos/badische-jobs.svg',
-      favicon: '/favicon.png'
-    },
-    settings: { 
-      seo: { 
-        title: 'Badische Jobs - Regionale Stellenangebote',
-        description: 'Ihr Portal für Jobs in Baden. Finden Sie jetzt Ihren Traumjob.'
-      } 
-    },
-    isActive: true
-  });
-
-  const admin = await storage.createUser({
-    tenantId: tenant.id,
-    email: 'hr@badische-jobs.de',
-    passwordHash: 'argon2_production_hash', 
-    role: 'admin',
-    firstName: 'System',
-    lastName: 'Administrator',
-    isActive: true
-  });
-
-  const companies = [
+async function seedDatabase(storage: IStorage) {
+  const seeds = [
     {
-      name: 'TechSolutions Baden GmbH',
-      industry: 'Software Development',
-      location: 'Karlsruhe',
-      description: 'Inovative Softwarelösungen für den Mittelstand.'
+      domain: 'badische-jobs.de',
+      name: 'Badische Jobs',
+      branding: { primaryColor: '#0066cc', logo: '/logos/badische-jobs.svg', favicon: '/favicon.png' },
+      settings: { seo: { title: 'Badische Jobs - Regionale Stellenangebote', description: 'Ihr Portal für Jobs in Baden. Finden Sie jetzt Ihren Traumjob.' } },
     },
     {
-      name: 'Schwarzwald Genuss AG',
-      industry: 'Gastronomy',
-      location: 'Freiburg',
-      description: 'Traditionelle Küche trifft auf moderne Konzepte.'
+      domain: 'www.pfaelzer-jobs.de',
+      name: 'Pfälzer Jobs',
+      branding: { primaryColor: '#2d5016', logo: '/logos/pfaelzer-jobs.svg', favicon: '/favicon.png' },
+      settings: { seo: { title: 'Pfälzer Jobs - Jobs in der Pfalz', description: 'Instead of wanderlust - your next job is closer than you think.' } },
+    },
+  ] as const;
+
+  for (const { domain, name, branding, settings } of seeds) {
+    const existingTenant = await storage.getTenantByDomain(domain);
+    if (existingTenant) continue;
+
+    console.log(`Seeding tenant: ${domain}...`);
+
+    const tenant = await storage.createTenant({
+      domain,
+      name,
+      branding,
+      settings,
+      isActive: true
+    });
+
+    // Phase 1 demo data only for badische-jobs.de
+    if (domain === 'badische-jobs.de') {
+      const admin = await storage.createUser({
+        tenantId: tenant.id,
+        email: 'hr@badische-jobs.de',
+        passwordHash: 'argon2_production_hash',
+        role: 'admin',
+        firstName: 'System',
+        lastName: 'Administrator',
+        isActive: true
+      });
+
+      const companies = [
+        { name: 'TechSolutions Baden GmbH', industry: 'Software Development', location: 'Karlsruhe', description: 'Inovative Softwarelösungen für den Mittelstand.' },
+        { name: 'Schwarzwald Genuss AG', industry: 'Gastronomy', location: 'Freiburg', description: 'Traditionelle Küche trifft auf moderne Konzepte.' }
+      ];
+
+      for (const comp of companies) {
+        const employer = await storage.createEmployer({
+          tenantId: tenant.id,
+          ownerId: admin.id,
+          name: comp.name,
+          description: comp.description,
+          industry: comp.industry,
+          size: '50-250',
+          location: comp.location,
+          isActive: true
+        });
+        await storage.createJob({
+          tenantId: tenant.id,
+          employerId: employer.id,
+          title: comp.industry === 'Software Development' ? 'Fullstack Web Developer' : 'Küchenchef (m/w/d)',
+          description: 'Herausfordernde Aufgaben in einem dynamischen Team.',
+          location: comp.location,
+          employmentType: 'full-time',
+          salaryMin: comp.industry === 'Software Development' ? 65000 : 45000,
+          salaryMax: comp.industry === 'Software Development' ? 85000 : 55000,
+          salaryCurrency: 'EUR',
+          requirements: 'Abgeschlossene Ausbildung/Studium, relevante Berufserfahrung.',
+          benefits: 'Flexible Arbeitszeiten, Weiterbildungsmöglichkeiten.',
+          visibility: ['primary', 'network'],
+          publishedAt: new Date(),
+          isActive: true
+        });
+      }
     }
-  ];
-
-  for (const comp of companies) {
-    const employer = await storage.createEmployer({
-      tenantId: tenant.id,
-      ownerId: admin.id,
-      name: comp.name,
-      description: comp.description,
-      industry: comp.industry,
-      size: '50-250',
-      location: comp.location,
-      isActive: true
-    });
-
-    await storage.createJob({
-      tenantId: tenant.id,
-      employerId: employer.id,
-      title: comp.industry === 'Software Development' ? 'Fullstack Web Developer' : 'Küchenchef (m/w/d)',
-      description: 'Herausfordernde Aufgaben in einem dynamischen Team.',
-      location: comp.location,
-      employmentType: 'full-time',
-      salaryMin: comp.industry === 'Software Development' ? 65000 : 45000,
-      salaryMax: comp.industry === 'Software Development' ? 85000 : 55000,
-      salaryCurrency: 'EUR',
-      requirements: 'Abgeschlossene Ausbildung/Studium, relevante Berufserfahrung.',
-      benefits: 'Flexible Arbeitszeiten, Weiterbildungsmöglichkeiten.',
-      visibility: ['primary', 'network'],
-      publishedAt: new Date(),
-      isActive: true
-    });
   }
 
   console.log('Production foundation seeded.');

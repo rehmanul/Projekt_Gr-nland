@@ -1,0 +1,21 @@
+# Postgres only - for local dev. Run: docker-compose up -d
+# Then: npm run db:push && npm run dev
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: groenland
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: groenland
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U groenland"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  postgres_data:

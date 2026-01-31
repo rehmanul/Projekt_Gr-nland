@@ -103,8 +103,8 @@ export default function JobSearch() {
             <h3 className="text-lg font-bold text-slate-900">No jobs found</h3>
             <p className="text-slate-500 mt-2">Try adjusting your search or filters to find what you're looking for.</p>
             <Button 
-              variant="link" 
-              className="mt-4 text-primary"
+              variant="ghost" 
+              className="mt-4 text-primary hover:text-primary"
               onClick={() => setFilters({ search: "", location: "", employmentType: "all" })}
             >
               Clear all filters

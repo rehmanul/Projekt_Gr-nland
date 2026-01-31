@@ -158,3 +158,16 @@ export type Application = typeof applications.$inferSelect;
 export type CreateJobRequest = z.infer<typeof insertJobSchema>;
 export type UpdateJobRequest = Partial<CreateJobRequest>;
 export type CreateApplicationRequest = z.infer<typeof insertApplicationSchema>;
+
+export type InsertTenant = z.infer<typeof insertTenantSchema>;
+export type InsertUser = z.infer<typeof insertUserSchema>;
+export type InsertEmployer = z.infer<typeof insertEmployerSchema>;
+export type InsertJob = z.infer<typeof insertJobSchema>;
+export type InsertApplication = z.infer<typeof insertApplicationSchema>;
+
+export type JobsQueryParams = {
+  search?: string;
+  location?: string;
+  employmentType?: string;
+  employerId?: number;
+};
