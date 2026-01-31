@@ -4,16 +4,15 @@
     "outputDirectory": "dist/public",
     "rewrites": [
         {
-            "source": "/api/(.*)",
-            "destination": "/api"
-        },
-        {
-            "source": "/(.*)",
+            "source": "/((?!api/).*)",
             "destination": "/index.html"
         }
     ],
     "functions": {
         "api/index.js": {
+            "runtime": "nodejs20.x"
+        },
+        "api/health.js": {
             "runtime": "nodejs20.x"
         }
     }
