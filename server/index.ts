@@ -2,10 +2,15 @@ import "dotenv/config";
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
-import { createServer } from "http";
+import { createServer, Server } from "http";
 
 const app = express();
-const httpServer = createServer(app);
+
+// Only create http server for non-Vercel environments
+let httpServer: Server | null = null;
+if (!process.env.VERCEL) {
+  httpServer = createServer(app);
+}
 
 declare module "http" {
   interface IncomingMessage {
@@ -62,32 +67,39 @@ app.use((req, res, next) => {
 
 /** Build and return the Express app (for Vercel serverless or programmatic use). */
 export async function createApp(): Promise<express.Express> {
-  const storage = await import("./storage").then((m) => m.initStorage());
-  await registerRoutes(httpServer, app, storage);
+  try {
+    const storage = await import("./storage").then((m) => m.initStorage());
+    // Pass a dummy server on Vercel since we don't use it
+    const dummyServer = httpServer || createServer(app);
+    await registerRoutes(dummyServer, app, storage);
 
-  app.use((err: any, _req: Request, res: Response, next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
+    app.use((err: any, _req: Request, res: Response, next: NextFunction) => {
+      const status = err.status || err.statusCode || 500;
+      const message = err.message || "Internal Server Error";
 
-    console.error("Internal Server Error:", err);
+      console.error("Internal Server Error:", err);
 
-    if (res.headersSent) {
-      return next(err);
+      if (res.headersSent) {
+        return next(err);
+      }
+
+      return res.status(status).json({ message });
+    });
+
+    if (process.env.VERCEL) {
+      // Static assets and SPA fallback are served by Vercel via outputDirectory
+    } else if (process.env.NODE_ENV === "production") {
+      serveStatic(app);
+    } else {
+      const { setupVite } = await import("./vite");
+      await setupVite(dummyServer, app);
     }
 
-    return res.status(status).json({ message });
-  });
-
-  if (process.env.VERCEL) {
-    // Static assets and SPA fallback are served by Vercel via outputDirectory
-  } else if (process.env.NODE_ENV === "production") {
-    serveStatic(app);
-  } else {
-    const { setupVite } = await import("./vite");
-    await setupVite(httpServer, app);
+    return app;
+  } catch (error) {
+    console.error("createApp failed:", error);
+    throw error;
   }
-
-  return app;
 }
 
 // When not on Vercel, run the server; on Vercel the api handler uses createApp()
@@ -96,7 +108,7 @@ if (!process.env.VERCEL) {
     await createApp();
     const port = parseInt(process.env.PORT || "5000", 10);
     const host = process.env.HOST || "127.0.0.1";
-    httpServer.listen(
+    httpServer!.listen(
       {
         port,
         host,
