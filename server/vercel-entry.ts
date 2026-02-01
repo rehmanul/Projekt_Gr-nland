@@ -3,11 +3,13 @@
  * This file is the entry point for esbuild to create a fully-bundled serverless function.
  * It wraps the Express app's createApp() function for Vercel's serverless environment.
  */
-import { createApp } from "../server/index";
+import { createApp } from "./index";
+import type { Request, Response } from "express";
 
 let appPromise: Promise<any> | null = null;
 
-export default async function handler(req: any, res: any) {
+// Vercel expects module.exports for the handler
+module.exports = async function handler(req: Request, res: Response) {
     try {
         if (!appPromise) {
             appPromise = createApp();
@@ -21,4 +23,4 @@ export default async function handler(req: any, res: any) {
             type: "SERVERLESS_INIT_ERROR"
         });
     }
-}
+};
