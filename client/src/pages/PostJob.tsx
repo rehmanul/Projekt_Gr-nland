@@ -18,8 +18,7 @@ export default function PostJob() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const { mutate: createJob, isPending } = useCreateJob();
-  const { data: employers, isLoading: isLoadingEmployers, error: employersError } = useEmployers();
-  console.log("PostJob employers:", employers);
+  const { data: employers } = useEmployers();
 
   const form = useForm<InsertJob>({
     resolver: zodResolver(insertJobSchema),
@@ -70,7 +69,7 @@ export default function PostJob() {
                 onValueChange={(val) => form.setValue("employerId", parseInt(val))}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder={isLoadingEmployers ? "Loading..." : "Select Employer"} />
+                  <SelectValue placeholder="Select Employer" />
                 </SelectTrigger>
                 <SelectContent>
                   {employers?.map(emp => (
@@ -79,8 +78,6 @@ export default function PostJob() {
                 </SelectContent>
               </Select>
               {form.formState.errors.employerId && <p className="text-red-500 text-sm">Please select an employer</p>}
-              {employersError && <p className="text-red-500 text-sm">Error: {employersError.message}</p>}
-              <div className="text-xs text-gray-400 mt-1">Status: {isLoadingEmployers ? 'Loading' : 'Loaded'} | Count: {employers?.length ?? 0}</div>
             </div>
 
             <div className="space-y-2">

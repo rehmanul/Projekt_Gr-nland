@@ -1,6 +1,7 @@
 import "dotenv/config";
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
+import { initStorage } from "./storage";
 import { serveStatic } from "./static";
 import { createServer, Server } from "http";
 
@@ -68,7 +69,7 @@ app.use((req, res, next) => {
 /** Build and return the Express app (for Vercel serverless or programmatic use). */
 export async function createApp(): Promise<express.Express> {
   try {
-    const storage = await import("./storage").then((m) => m.initStorage());
+    const storage = await initStorage();
     // Pass a dummy server on Vercel since we don't use it
     const dummyServer = httpServer || createServer(app);
     await registerRoutes(dummyServer, app, storage);
