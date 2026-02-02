@@ -7,7 +7,7 @@ import {
   type Application, type InsertApplication
 } from "@shared/schema";
 import { db, pool } from "./db";
-import { eq, ilike, and, or, sql } from "drizzle-orm";
+import { eq, ilike, and, or, sql, gte, lte, inArray } from "drizzle-orm";
 import { MemoryStorage } from "./memory-storage";
 
 export interface IStorage {
@@ -26,11 +26,11 @@ export interface IStorage {
   createEmployer(employer: InsertEmployer): Promise<Employer>;
 
   // Job
-  getJobs(tenantId: number, params: { 
-    search?: string; 
-    location?: string; 
-    employmentType?: string; 
-    employerId?: number 
+  getJobs(tenantId: number, params: {
+    search?: string;
+    location?: string;
+    employmentType?: string;
+    employerId?: number
   }): Promise<(Job & { employer: Employer })[]>;
   getJob(tenantId: number, id: number): Promise<(Job & { employer: Employer }) | undefined>;
   createJob(job: InsertJob): Promise<Job>;
@@ -96,16 +96,26 @@ export class DatabaseStorage implements IStorage {
     location?: string;
     employmentType?: string;
     employerId?: number;
+    salaryMin?: number;
+    salaryMax?: number;
+    remoteType?: string;
+    experienceLevel?: string;
+    category?: string;
+    companySize?: string;
+    postedWithin?: string;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
   }): Promise<(Job & { employer: Employer })[]> {
     if (!db) return [];
     const conditions = [eq(jobs.tenantId, tenantId), eq(jobs.isActive, true)];
 
+    // Text search
     if (params.search) {
       conditions.push(
         or(
           ilike(jobs.title, `%${params.search}%`),
           ilike(jobs.description, `%${params.search}%`)
-        )
+        )!
       );
     }
 
@@ -121,6 +131,76 @@ export class DatabaseStorage implements IStorage {
       conditions.push(eq(jobs.employerId, params.employerId));
     }
 
+    // Salary range filter
+    if (params.salaryMin) {
+      conditions.push(gte(jobs.salaryMax, params.salaryMin));
+    }
+    if (params.salaryMax) {
+      conditions.push(lte(jobs.salaryMin, params.salaryMax));
+    }
+
+    // Remote type filter (can be comma-separated)
+    if (params.remoteType) {
+      const types = params.remoteType.split(',').map(t => t.trim());
+      if (types.length === 1) {
+        conditions.push(eq(jobs.remoteType, types[0]));
+      } else {
+        conditions.push(inArray(jobs.remoteType, types));
+      }
+    }
+
+    // Experience level filter (can be comma-separated)
+    if (params.experienceLevel) {
+      const levels = params.experienceLevel.split(',').map(l => l.trim());
+      if (levels.length === 1) {
+        conditions.push(eq(jobs.experienceLevel, levels[0]));
+      } else {
+        conditions.push(inArray(jobs.experienceLevel, levels));
+      }
+    }
+
+    // Category filter
+    if (params.category) {
+      conditions.push(eq(jobs.category, params.category));
+    }
+
+    // Posted within filter
+    if (params.postedWithin && params.postedWithin !== 'all') {
+      const now = new Date();
+      let cutoff: Date;
+      switch (params.postedWithin) {
+        case 'today':
+          cutoff = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+          break;
+        case '7days':
+          cutoff = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          break;
+        case '30days':
+          cutoff = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+          break;
+        default:
+          cutoff = new Date(0);
+      }
+      conditions.push(gte(jobs.publishedAt, cutoff));
+    }
+
+    // Company size filter (filter by employer size)
+    // This will be applied after the join with employers
+
+    // Build order by clause
+    let orderByClause = sql`${jobs.publishedAt} DESC NULLS LAST`;
+    const order = params.sortOrder === 'asc' ? sql`ASC` : sql`DESC`;
+    switch (params.sortBy) {
+      case 'date':
+        orderByClause = sql`${jobs.publishedAt} ${order} NULLS LAST`;
+        break;
+      case 'salary':
+        orderByClause = sql`${jobs.salaryMax} ${order} NULLS LAST`;
+        break;
+      default: // relevance - use published date desc
+        orderByClause = sql`${jobs.publishedAt} DESC NULLS LAST`;
+    }
+
     const result = await db
       .select({
         job: jobs,
@@ -129,9 +209,17 @@ export class DatabaseStorage implements IStorage {
       .from(jobs)
       .innerJoin(employers, eq(jobs.employerId, employers.id))
       .where(and(...conditions))
-      .orderBy(sql`${jobs.publishedAt} DESC NULLS LAST`);
+      .orderBy(orderByClause);
 
-    return result.map(row => ({ ...row.job, employer: row.employer }));
+    // Post-filter by company size if specified
+    let filtered = result.map(row => ({ ...row.job, employer: row.employer }));
+
+    if (params.companySize) {
+      const sizes = params.companySize.split(',').map(s => s.trim());
+      filtered = filtered.filter(job => job.employer.size && sizes.includes(job.employer.size));
+    }
+
+    return filtered;
   }
 
   async getJob(tenantId: number, id: number): Promise<(Job & { employer: Employer }) | undefined> {
@@ -144,7 +232,7 @@ export class DatabaseStorage implements IStorage {
       .from(jobs)
       .innerJoin(employers, eq(jobs.employerId, employers.id))
       .where(and(eq(jobs.tenantId, tenantId), eq(jobs.id, id)));
-    
+
     if (!result) return undefined;
     return { ...result.job, employer: result.employer };
   }

@@ -64,6 +64,9 @@ export const jobs = pgTable("jobs", {
   salaryCurrency: varchar("salary_currency", { length: 3 }).notNull().default('EUR'),
   requirements: text("requirements"),
   benefits: text("benefits"),
+  remoteType: varchar("remote_type", { length: 20 }).notNull().default('on-site'), // 'on-site', 'hybrid', 'remote'
+  experienceLevel: varchar("experience_level", { length: 20 }).notNull().default('mid'), // 'entry', 'mid', 'senior', 'executive'
+  category: varchar("category", { length: 100 }), // Industry/category for filtering
   visibility: varchar("visibility", { length: 50 }).array().notNull().default(sql`ARRAY['primary']::varchar[]`),
   publishedAt: timestamp("published_at"),
   expiresAt: timestamp("expires_at"),
@@ -326,4 +329,14 @@ export type JobsQueryParams = {
   location?: string;
   employmentType?: string;
   employerId?: number;
+  // Advanced filters
+  salaryMin?: number;
+  salaryMax?: number;
+  remoteType?: string; // 'on-site' | 'hybrid' | 'remote' or comma-separated
+  experienceLevel?: string; // 'entry' | 'mid' | 'senior' | 'executive' or comma-separated
+  category?: string;
+  companySize?: string; // Employer size filter
+  postedWithin?: string; // 'today' | '7days' | '30days' | 'all'
+  sortBy?: string; // 'relevance' | 'date' | 'salary'
+  sortOrder?: 'asc' | 'desc';
 };

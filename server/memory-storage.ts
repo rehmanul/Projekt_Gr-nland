@@ -160,6 +160,9 @@ export class MemoryStorage implements IStorage {
       salaryCurrency: j.salaryCurrency ?? "EUR",
       requirements: j.requirements ?? null,
       benefits: j.benefits ?? null,
+      remoteType: (j as any).remoteType ?? "on-site",
+      experienceLevel: (j as any).experienceLevel ?? "mid",
+      category: (j as any).category ?? null,
       visibility: j.visibility ?? ["primary"],
       publishedAt: j.publishedAt ?? null,
       expiresAt: j.expiresAt ?? null,
@@ -215,7 +218,21 @@ export class MemoryStorage implements IStorage {
 
   async getJobs(
     tenantId: number,
-    params: { search?: string; location?: string; employmentType?: string; employerId?: number }
+    params: {
+      search?: string;
+      location?: string;
+      employmentType?: string;
+      employerId?: number;
+      salaryMin?: number;
+      salaryMax?: number;
+      remoteType?: string;
+      experienceLevel?: string;
+      category?: string;
+      companySize?: string;
+      postedWithin?: string;
+      sortBy?: string;
+      sortOrder?: 'asc' | 'desc';
+    }
   ): Promise<(Job & { employer: Employer })[]> {
     let list = [...this.jobs.values()]
       .filter((j) => j.tenantId === tenantId && j.isActive)
@@ -223,6 +240,8 @@ export class MemoryStorage implements IStorage {
         const employer = this.employers.get(job.employerId)!;
         return { ...job, employer };
       });
+
+    // Text search
     if (params.search) {
       const s = params.search.toLowerCase();
       list = list.filter((j) => j.title.toLowerCase().includes(s) || j.description.toLowerCase().includes(s));
@@ -233,7 +252,71 @@ export class MemoryStorage implements IStorage {
     }
     if (params.employmentType) list = list.filter((j) => j.employmentType === params.employmentType);
     if (params.employerId != null) list = list.filter((j) => j.employerId === params.employerId);
-    list.sort((a, b) => (b.publishedAt?.getTime() ?? 0) - (a.publishedAt?.getTime() ?? 0));
+
+    // Salary range filter
+    if (params.salaryMin) {
+      list = list.filter(j => j.salaryMax && j.salaryMax >= params.salaryMin!);
+    }
+    if (params.salaryMax) {
+      list = list.filter(j => j.salaryMin && j.salaryMin <= params.salaryMax!);
+    }
+
+    // Remote type filter
+    if (params.remoteType) {
+      const types = params.remoteType.split(',').map(t => t.trim());
+      list = list.filter(j => types.includes((j as any).remoteType || 'on-site'));
+    }
+
+    // Experience level filter
+    if (params.experienceLevel) {
+      const levels = params.experienceLevel.split(',').map(l => l.trim());
+      list = list.filter(j => levels.includes((j as any).experienceLevel || 'mid'));
+    }
+
+    // Category filter
+    if (params.category) {
+      list = list.filter(j => (j as any).category === params.category);
+    }
+
+    // Company size filter
+    if (params.companySize) {
+      const sizes = params.companySize.split(',').map(s => s.trim());
+      list = list.filter(j => j.employer.size && sizes.includes(j.employer.size));
+    }
+
+    // Posted within filter
+    if (params.postedWithin && params.postedWithin !== 'all') {
+      const now = new Date();
+      let cutoff: Date;
+      switch (params.postedWithin) {
+        case 'today':
+          cutoff = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+          break;
+        case '7days':
+          cutoff = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          break;
+        case '30days':
+          cutoff = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+          break;
+        default:
+          cutoff = new Date(0);
+      }
+      list = list.filter(j => j.publishedAt && j.publishedAt >= cutoff);
+    }
+
+    // Sorting
+    const sortOrder = params.sortOrder === 'asc' ? 1 : -1;
+    switch (params.sortBy) {
+      case 'date':
+        list.sort((a, b) => sortOrder * ((b.publishedAt?.getTime() ?? 0) - (a.publishedAt?.getTime() ?? 0)));
+        break;
+      case 'salary':
+        list.sort((a, b) => sortOrder * ((b.salaryMax ?? 0) - (a.salaryMax ?? 0)));
+        break;
+      default: // relevance - default to date desc
+        list.sort((a, b) => (b.publishedAt?.getTime() ?? 0) - (a.publishedAt?.getTime() ?? 0));
+    }
+
     return list;
   }
 
