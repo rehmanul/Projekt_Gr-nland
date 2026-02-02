@@ -18,9 +18,17 @@ import type { Tenant } from "@shared/schema";
 const router = Router();
 
 // File upload configuration
-const uploadDir = path.join(process.cwd(), "uploads", "campaigns");
-if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
+// File upload configuration
+const uploadDir = process.env.VERCEL
+    ? path.join("/tmp", "uploads", "campaigns")
+    : path.join(process.cwd(), "uploads", "campaigns");
+
+try {
+    if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+    }
+} catch (error) {
+    console.warn(`Failed to create upload directory at ${uploadDir}, uploads may fail:`, error);
 }
 
 const upload = multer({
