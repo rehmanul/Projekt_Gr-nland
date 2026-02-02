@@ -1,9 +1,9 @@
 import { z } from 'zod';
-import { 
-  insertJobSchema, 
-  insertApplicationSchema, 
-  jobs, 
-  employers, 
+import {
+  insertJobSchema,
+  insertApplicationSchema,
+  jobs,
+  employers,
   applications,
   tenants
 } from './schema';
@@ -35,6 +35,16 @@ export const api = {
         location: z.string().optional(),
         employmentType: z.string().optional(),
         employerId: z.coerce.number().optional(),
+        // Advanced filters
+        salaryMin: z.coerce.number().optional(),
+        salaryMax: z.coerce.number().optional(),
+        remoteType: z.string().optional(),
+        experienceLevel: z.string().optional(),
+        category: z.string().optional(),
+        companySize: z.string().optional(),
+        postedWithin: z.string().optional(),
+        sortBy: z.string().optional(),
+        sortOrder: z.enum(['asc', 'desc']).optional(),
       }).optional(),
       responses: {
         200: z.array(z.custom<typeof jobs.$inferSelect & { employer: typeof employers.$inferSelect }>()),
