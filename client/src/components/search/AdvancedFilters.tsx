@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { ChevronDown, ChevronUp, X, Briefcase, MapPin, Clock, DollarSign, Building2, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Slider } from '@/components/ui/slider';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -221,22 +220,50 @@ export function AdvancedFiltersPanel({ filters, onChange, onClear }: AdvancedFil
                             <div className="space-y-3">
                                 <div className="flex items-center gap-2 text-sm font-medium text-slate-700">
                                     <DollarSign className="w-4 h-4" />
-                                    Salary Range
+                                    Salary Range (€/year)
                                 </div>
-                                <div className="px-2">
-                                    <Slider
-                                        defaultValue={[
-                                            (filters.salaryMin || 0) / 1000,
-                                            (filters.salaryMax || 200000) / 1000
-                                        ]}
-                                        max={200}
-                                        step={5}
-                                        onValueChange={handleSalaryChange}
-                                        className="w-full"
-                                    />
-                                    <div className="flex justify-between text-xs text-slate-500 mt-1">
-                                        <span>{filters.salaryMin ? formatSalary(filters.salaryMin) : '€0'}</span>
-                                        <span>{filters.salaryMax ? formatSalary(filters.salaryMax) : '€200k+'}</span>
+                                <div className="flex items-center gap-3">
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-sm text-slate-500">Min:</span>
+                                        <select
+                                            value={filters.salaryMin || ''}
+                                            onChange={(e) => onChange({
+                                                ...filters,
+                                                salaryMin: e.target.value ? Number(e.target.value) : undefined
+                                            })}
+                                            className="px-3 py-2 text-sm border border-slate-200 rounded-lg bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                        >
+                                            <option value="">Any</option>
+                                            <option value="20000">€20k</option>
+                                            <option value="30000">€30k</option>
+                                            <option value="40000">€40k</option>
+                                            <option value="50000">€50k</option>
+                                            <option value="60000">€60k</option>
+                                            <option value="80000">€80k</option>
+                                            <option value="100000">€100k</option>
+                                        </select>
+                                    </div>
+                                    <span className="text-slate-400">—</span>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-sm text-slate-500">Max:</span>
+                                        <select
+                                            value={filters.salaryMax || ''}
+                                            onChange={(e) => onChange({
+                                                ...filters,
+                                                salaryMax: e.target.value ? Number(e.target.value) : undefined
+                                            })}
+                                            className="px-3 py-2 text-sm border border-slate-200 rounded-lg bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                        >
+                                            <option value="">Any</option>
+                                            <option value="30000">€30k</option>
+                                            <option value="40000">€40k</option>
+                                            <option value="50000">€50k</option>
+                                            <option value="60000">€60k</option>
+                                            <option value="80000">€80k</option>
+                                            <option value="100000">€100k</option>
+                                            <option value="150000">€150k</option>
+                                            <option value="200000">€200k+</option>
+                                        </select>
                                     </div>
                                 </div>
                             </div>
