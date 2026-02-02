@@ -71,7 +71,7 @@ router.post("/auth/request-magic-link", async (req: Request, res: Response) => {
 
 router.get("/auth/verify/:token", async (req: Request, res: Response) => {
     try {
-        const user = await verifyMagicLink(req.params.token);
+        const user = await verifyMagicLink(String(req.params.token));
         if (!user) {
             return res.status(401).json({ message: "Invalid or expired magic link" });
         }

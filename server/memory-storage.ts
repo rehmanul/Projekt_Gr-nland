@@ -194,7 +194,7 @@ export class MemoryStorage implements IStorage {
   }
 
   async getUserByEmail(tenantId: number, email: string): Promise<User | undefined> {
-    return [...this.users.values()].find((u) => u.tenantId === tenantId && u.email === email);
+    return Array.from(this.users.values()).find((u) => u.tenantId === tenantId && u.email === email);
   }
 
   async createUser(user: InsertUser): Promise<User> {
@@ -202,7 +202,7 @@ export class MemoryStorage implements IStorage {
   }
 
   async getEmployers(tenantId: number): Promise<Employer[]> {
-    return [...this.employers.values()].filter((e) => e.tenantId === tenantId);
+    return Array.from(this.employers.values()).filter((e) => e.tenantId === tenantId);
   }
 
   async getEmployer(tenantId: number, id: number): Promise<Employer | undefined> {
@@ -234,7 +234,7 @@ export class MemoryStorage implements IStorage {
       sortOrder?: 'asc' | 'desc';
     }
   ): Promise<(Job & { employer: Employer })[]> {
-    let list = [...this.jobs.values()]
+    let list = Array.from(this.jobs.values())
       .filter((j) => j.tenantId === tenantId && j.isActive)
       .map((job) => {
         const employer = this.employers.get(job.employerId)!;
