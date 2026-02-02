@@ -34,6 +34,11 @@ export async function registerRoutes(
   app: Express,
   storage: IStorage = defaultStorage
 ): Promise<Server> {
+  // Health check endpoint (bypasses tenant middleware)
+  app.get("/api/health", (_req, res) => {
+    res.json({ status: "ok", timestamp: new Date().toISOString() });
+  });
+
   app.use("/api", resolveTenantMiddleware(storage));
 
   // Campaign Approval Workflow Routes
