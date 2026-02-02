@@ -18,7 +18,8 @@ export default function PostJob() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const { mutate: createJob, isPending } = useCreateJob();
-  const { data: employers } = useEmployers();
+  const { data: employers, isLoading: isLoadingEmployers, error: employersError } = useEmployers();
+  console.log("PostJob employers:", employers);
 
   const form = useForm<InsertJob>({
     resolver: zodResolver(insertJobSchema),
@@ -54,7 +55,7 @@ export default function PostJob() {
         <Link href="/" className="inline-flex items-center text-sm text-slate-500 hover:text-primary mb-6">
           <ArrowLeft className="w-4 h-4 mr-1" /> Back to Home
         </Link>
-        
+
         <div className="mb-8">
           <h1 className="text-3xl font-display font-bold text-slate-900 mb-2">Post a New Job</h1>
           <p className="text-slate-600">Reach thousands of qualified candidates in the region.</p>
@@ -65,11 +66,11 @@ export default function PostJob() {
             {/* Employer Selection (Mock Auth) */}
             <div className="space-y-2">
               <Label htmlFor="employerId">Posting on behalf of</Label>
-              <Select 
+              <Select
                 onValueChange={(val) => form.setValue("employerId", parseInt(val))}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select Employer" />
+                  <SelectValue placeholder={isLoadingEmployers ? "Loading..." : "Select Employer"} />
                 </SelectTrigger>
                 <SelectContent>
                   {employers?.map(emp => (
@@ -78,6 +79,8 @@ export default function PostJob() {
                 </SelectContent>
               </Select>
               {form.formState.errors.employerId && <p className="text-red-500 text-sm">Please select an employer</p>}
+              {employersError && <p className="text-red-500 text-sm">Error: {employersError.message}</p>}
+              <div className="text-xs text-gray-400 mt-1">Status: {isLoadingEmployers ? 'Loading' : 'Loaded'} | Count: {employers?.length ?? 0}</div>
             </div>
 
             <div className="space-y-2">
@@ -93,7 +96,7 @@ export default function PostJob() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="employmentType">Employment Type</Label>
-                <Select 
+                <Select
                   defaultValue="full-time"
                   onValueChange={(val) => form.setValue("employmentType", val)}
                 >
@@ -127,32 +130,32 @@ export default function PostJob() {
 
             <div className="space-y-2">
               <Label htmlFor="description">Job Description</Label>
-              <Textarea 
-                id="description" 
-                className="h-40" 
+              <Textarea
+                id="description"
+                className="h-40"
                 placeholder="Describe the role responsibilities..."
-                {...form.register("description")} 
+                {...form.register("description")}
               />
               {form.formState.errors.description && <p className="text-red-500 text-sm">{form.formState.errors.description.message}</p>}
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="requirements">Requirements</Label>
-              <Textarea 
-                id="requirements" 
-                className="h-32" 
+              <Textarea
+                id="requirements"
+                className="h-32"
                 placeholder="List key skills and qualifications..."
-                {...form.register("requirements")} 
+                {...form.register("requirements")}
               />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="benefits">Benefits</Label>
-              <Textarea 
-                id="benefits" 
-                className="h-32" 
+              <Textarea
+                id="benefits"
+                className="h-32"
                 placeholder="What perks do you offer?"
-                {...form.register("benefits")} 
+                {...form.register("benefits")}
               />
             </div>
 
