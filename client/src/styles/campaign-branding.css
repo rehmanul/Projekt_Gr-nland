@@ -1,0 +1,191 @@
+/* Campaign Approval Portal Branding */
+
+:root {
+  /* CS Dashboard - Professional Blue */
+  --cs-primary: #2563eb;
+  --cs-primary-light: #eff6ff;
+  --cs-primary-dark: #1d4ed8;
+  --cs-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  
+  /* Customer Portal - Trustworthy Green/Teal */
+  --customer-primary: #0d9488;
+  --customer-primary-light: #f0fdfa;
+  --customer-primary-dark: #0f766e;
+  --customer-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  
+  /* Agency Portal - Creative Purple */
+  --agency-primary: #7c3aed;
+  --agency-primary-light: #f5f3ff;
+  --agency-primary-dark: #6d28d9;
+  --agency-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* Portal Background Gradients */
+.portal-bg-cs {
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 50%, #f0f4ff 100%);
+}
+
+.portal-bg-customer {
+  background: linear-gradient(135deg, #f0fdfa 0%, #ecfdf5 50%, #f0fdf4 100%);
+}
+
+.portal-bg-agency {
+  background: linear-gradient(135deg, #faf5ff 0%, #f5f3ff 50%, #eef2ff 100%);
+}
+
+/* Card Styling with Glass Effect */
+.portal-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06),
+    0 0 0 1px rgba(0, 0, 0, 0.02);
+  border-radius: 16px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.portal-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Status Badge Enhancements */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Timeline Styling */
+.timeline-item {
+  position: relative;
+  padding-left: 24px;
+}
+
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.timeline-item::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 22px;
+  width: 2px;
+  height: calc(100% - 14px);
+  background: #e5e7eb;
+}
+
+.timeline-item:last-child::after {
+  display: none;
+}
+
+/* Button Enhancements */
+.btn-primary {
+  background: linear-gradient(135deg, var(--cs-primary) 0%, var(--cs-primary-dark) 100%);
+  color: white;
+  font-weight: 600;
+  padding: 12px 24px;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px -3px rgba(37, 99, 235, 0.4);
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px -3px rgba(37, 99, 235, 0.5);
+}
+
+/* Upload Zone */
+.upload-zone {
+  border: 2px dashed #d1d5db;
+  border-radius: 16px;
+  padding: 40px;
+  text-align: center;
+  transition: all 0.2s ease;
+  background: rgba(249, 250, 251, 0.5);
+}
+
+.upload-zone:hover {
+  border-color: var(--cs-primary);
+  background: rgba(239, 246, 255, 0.5);
+}
+
+/* Stat Cards */
+.stat-card {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.stat-card .stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-card .stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1;
+  margin-top: 12px;
+}
+
+.stat-card .stat-label {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+/* Animation Classes */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.5s ease forwards;
+}
+
+/* Overdue Alert */
+.alert-overdue {
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+/* Success Alert */
+.alert-success {
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  border: 1px solid #bbf7d0;
+  border-radius: 12px;
+  padding: 16px;
+}

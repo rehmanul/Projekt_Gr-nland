@@ -4,6 +4,7 @@ import { storage as defaultStorage, initStorage, DatabaseStorage, type IStorage 
 import { api } from "@shared/routes";
 import { z } from "zod";
 import { insertJobSchema, insertApplicationSchema, type Tenant } from "@shared/schema";
+import campaignRoutes from "./campaign-routes";
 
 function resolveTenantMiddleware(storage: IStorage) {
   return async function resolveTenant(req: Request, res: Response, next: NextFunction) {
@@ -34,6 +35,9 @@ export async function registerRoutes(
   storage: IStorage = defaultStorage
 ): Promise<Server> {
   app.use("/api", resolveTenantMiddleware(storage));
+
+  // Campaign Approval Workflow Routes
+  app.use("/api", campaignRoutes);
 
   // === API ROUTES ===
 
