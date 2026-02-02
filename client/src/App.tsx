@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Layout } from "@/components/Layout";
+import ScrollToTop from "@/components/ScrollToTop";
 
 import Home from "@/pages/Home";
 import JobSearch from "@/pages/JobSearch";
@@ -28,122 +29,125 @@ import { MagicLinkRequest, MagicLinkVerify } from "@/components/campaign/Campaig
 
 function Router() {
   return (
-    <Switch>
-      {/* Campaign Portal Routes (no main layout) */}
-      <Route path="/cs/login" component={() => <MagicLinkRequest portalType="cs" />} />
-      <Route path="/cs/auth/verify" component={() => <MagicLinkVerify portalType="cs" />} />
-      <Route path="/cs" component={CSDashboard} />
-      <Route path="/cs/campaigns/:id" component={CSDashboard} />
+    <>
+      <ScrollToTop />
+      <Switch>
+        {/* Campaign Portal Routes (no main layout) */}
+        <Route path="/cs/login" component={() => <MagicLinkRequest portalType="cs" />} />
+        <Route path="/cs/auth/verify" component={() => <MagicLinkVerify portalType="cs" />} />
+        <Route path="/cs" component={CSDashboard} />
+        <Route path="/cs/campaigns/:id" component={CSDashboard} />
 
-      <Route path="/customer/login" component={() => <MagicLinkRequest portalType="customer" />} />
-      <Route path="/customer/auth/verify" component={() => <MagicLinkVerify portalType="customer" />} />
-      <Route path="/customer/campaign/:id" component={CustomerPortal} />
+        <Route path="/customer/login" component={() => <MagicLinkRequest portalType="customer" />} />
+        <Route path="/customer/auth/verify" component={() => <MagicLinkVerify portalType="customer" />} />
+        <Route path="/customer/campaign/:id" component={CustomerPortal} />
 
-      <Route path="/agency/login" component={() => <MagicLinkRequest portalType="agency" />} />
-      <Route path="/agency/auth/verify" component={() => <MagicLinkVerify portalType="agency" />} />
-      <Route path="/agency/campaign/:id" component={AgencyPortal} />
-      <Route path="/agency" component={AgencyPortal} />
+        <Route path="/agency/login" component={() => <MagicLinkRequest portalType="agency" />} />
+        <Route path="/agency/auth/verify" component={() => <MagicLinkVerify portalType="agency" />} />
+        <Route path="/agency/campaign/:id" component={AgencyPortal} />
+        <Route path="/agency" component={AgencyPortal} />
 
-      {/* Main Site Routes (with layout) */}
-      <Route path="/">
-        {() => (
-          <Layout>
-            <Home />
-          </Layout>
-        )}
-      </Route>
-      <Route path="/jobs">
-        {() => (
-          <Layout>
-            <JobSearch />
-          </Layout>
-        )}
-      </Route>
-      <Route path="/jobs/:id">
-        {(params: { id: string }) => (
-          <Layout>
-            <JobDetails />
-          </Layout>
-        )}
-      </Route>
-      <Route path="/companies">
-        {() => (
-          <Layout>
-            <Employers />
-          </Layout>
-        )}
-      </Route>
-      <Route path="/employers/:id">
-        {() => (
-          <Layout>
-            <EmployerDetail />
-          </Layout>
-        )}
-      </Route>
-      <Route path="/post-job">
-        {() => (
-          <Layout>
-            <PostJob />
-          </Layout>
-        )}
-      </Route>
-      <Route path="/about">
-        {() => (
-          <Layout>
-            <About />
-          </Layout>
-        )}
-      </Route>
-      <Route path="/contact">
-        {() => (
-          <Layout>
-            <Contact />
-          </Layout>
-        )}
-      </Route>
-      <Route path="/imprint">
-        {() => (
-          <Layout>
-            <Imprint />
-          </Layout>
-        )}
-      </Route>
-      <Route path="/privacy">
-        {() => (
-          <Layout>
-            <Privacy />
-          </Layout>
-        )}
-      </Route>
-      <Route path="/terms">
-        {() => (
-          <Layout>
-            <Terms />
-          </Layout>
-        )}
-      </Route>
-      <Route path="/faq">
-        {() => (
-          <Layout>
-            <FAQ />
-          </Layout>
-        )}
-      </Route>
-      <Route path="/pricing">
-        {() => (
-          <Layout>
-            <Pricing />
-          </Layout>
-        )}
-      </Route>
-      <Route>
-        {() => (
-          <Layout>
-            <NotFound />
-          </Layout>
-        )}
-      </Route>
-    </Switch>
+        {/* Main Site Routes (with layout) */}
+        <Route path="/">
+          {() => (
+            <Layout>
+              <Home />
+            </Layout>
+          )}
+        </Route>
+        <Route path="/jobs">
+          {() => (
+            <Layout>
+              <JobSearch />
+            </Layout>
+          )}
+        </Route>
+        <Route path="/jobs/:id">
+          {(params: { id: string }) => (
+            <Layout>
+              <JobDetails />
+            </Layout>
+          )}
+        </Route>
+        <Route path="/companies">
+          {() => (
+            <Layout>
+              <Employers />
+            </Layout>
+          )}
+        </Route>
+        <Route path="/employers/:id">
+          {() => (
+            <Layout>
+              <EmployerDetail />
+            </Layout>
+          )}
+        </Route>
+        <Route path="/post-job">
+          {() => (
+            <Layout>
+              <PostJob />
+            </Layout>
+          )}
+        </Route>
+        <Route path="/about">
+          {() => (
+            <Layout>
+              <About />
+            </Layout>
+          )}
+        </Route>
+        <Route path="/contact">
+          {() => (
+            <Layout>
+              <Contact />
+            </Layout>
+          )}
+        </Route>
+        <Route path="/imprint">
+          {() => (
+            <Layout>
+              <Imprint />
+            </Layout>
+          )}
+        </Route>
+        <Route path="/privacy">
+          {() => (
+            <Layout>
+              <Privacy />
+            </Layout>
+          )}
+        </Route>
+        <Route path="/terms">
+          {() => (
+            <Layout>
+              <Terms />
+            </Layout>
+          )}
+        </Route>
+        <Route path="/faq">
+          {() => (
+            <Layout>
+              <FAQ />
+            </Layout>
+          )}
+        </Route>
+        <Route path="/pricing">
+          {() => (
+            <Layout>
+              <Pricing />
+            </Layout>
+          )}
+        </Route>
+        <Route>
+          {() => (
+            <Layout>
+              <NotFound />
+            </Layout>
+          )}
+        </Route>
+      </Switch>
+    </>
   );
 }
 
@@ -159,3 +163,4 @@ function App() {
 }
 
 export default App;
+
