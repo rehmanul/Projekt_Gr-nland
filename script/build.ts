@@ -6,6 +6,11 @@ import { rm, readFile } from "fs/promises";
 // which helps cold start times
 const allowlist = [
   "@google/generative-ai",
+  "@aws-sdk/credential-provider-web-identity",
+  "@aws-sdk/credential-provider-node",
+  "@aws-sdk/rds-signer",
+  "@vercel/functions",
+  "@vercel/oidc",
   "axios",
   "connect-pg-simple",
   "cors",
