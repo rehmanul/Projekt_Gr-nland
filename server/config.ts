@@ -37,6 +37,7 @@ const envSchema = z.object({
   REMINDER_ASSET_DAYS: z.string().optional(),
   REMINDER_DRAFT_DAYS: z.string().optional(),
   REMINDER_ESCALATE_AFTER_DAYS: z.string().optional(),
+  ADMIN_API_KEY: z.string().optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);
@@ -153,4 +154,5 @@ export const config = {
       ? parseInt(env.REMINDER_ESCALATE_AFTER_DAYS, 10)
       : 1,
   },
+  adminApiKey: env.ADMIN_API_KEY ?? "",
 } as const;

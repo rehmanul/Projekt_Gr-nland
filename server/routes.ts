@@ -7,6 +7,7 @@ import { insertJobSchema, insertApplicationSchema, type Tenant } from "@shared/s
 import campaignRoutes from "./campaign-routes";
 import { resolveTenantDomain } from "./tenant";
 import { initRealtime } from "./realtime";
+import adminRoutes from "./admin-routes";
 
 function resolveTenantMiddleware(storage: IStorage) {
   return async function resolveTenant(req: Request, res: Response, next: NextFunction) {
@@ -33,6 +34,9 @@ export async function registerRoutes(
   app.get("/api/health", (_req, res) => {
     res.json({ status: "ok", timestamp: new Date().toISOString() });
   });
+
+  // Admin routes (bootstrap tenant/employer setup)
+  app.use("/api", adminRoutes);
 
   app.use("/api", resolveTenantMiddleware(storage));
 

@@ -59,6 +59,64 @@ npm run dev
 
 CS users, agencies, and customers authenticate via magic links. Campaign creation and approvals run end-to-end with real email delivery, GCS file storage, audit logging, and realtime updates.
 
+## Live site tenant/employer setup
+
+The public job portal requires a tenant that matches the live domain and at least one employer. Use the admin bootstrap endpoint (protected by `ADMIN_API_KEY`) to create production data.
+
+Example (replace values with real production data):
+
+```bash
+curl -X POST https://projekt-gr-nland.vercel.app/api/admin/bootstrap \
+  -H "Authorization: Bearer $ADMIN_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "tenant": {
+      "domain": "projekt-gr-nland.vercel.app",
+      "name": "Projekt Grönland"
+    },
+    "owner": {
+      "email": "owner@your-domain.example",
+      "firstName": "Owner",
+      "lastName": "User"
+    },
+    "employer": {
+      "name": "Your Company",
+      "website": "https://your-company.example",
+      "industry": "Technology",
+      "size": "51-200",
+      "location": "Karlsruhe"
+    }
+  }'
+```
+
+To add additional employers later:
+
+```bash
+curl -X POST https://projekt-gr-nland.vercel.app/api/admin/employers \
+  -H "Authorization: Bearer $ADMIN_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "tenantDomain": "projekt-gr-nland.vercel.app",
+    "owner": {
+      "email": "owner@your-domain.example",
+      "firstName": "Owner",
+      "lastName": "User"
+    },
+    "employer": {
+      "name": "Second Company",
+      "website": "https://second-company.example",
+      "industry": "Retail",
+      "size": "11-50",
+      "location": "Mannheim"
+    }
+  }'
+```
+
+Ensure the Vercel project env vars include:
+
+- `ADMIN_API_KEY` (strong random secret)
+- `TENANT_DOMAIN_OVERRIDE=projekt-gr-nland.vercel.app` (optional if host headers match)
+
 ## Google Cloud deployment
 
 Production deployment on Google Cloud (Cloud Run + Cloud SQL + GCS + Google Workspace SMTP relay) is supported. See `DEPLOY_GCP.md` for a full, production-grade setup checklist and deployment steps.
