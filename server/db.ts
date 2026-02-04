@@ -1,9 +1,11 @@
 import * as schema from "@shared/schema";
-import { Pool } from "pg";
+import pg from "pg";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { attachDatabasePool } from "@vercel/functions";
 import { config } from "./config";
 import { getRdsIamToken } from "./rds-iam";
+
+const { Pool } = pg;
 
 const sslConfig = config.databaseSsl ? { rejectUnauthorized: false } : undefined;
 const poolConfig = config.databaseUrl
