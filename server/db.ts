@@ -1,15 +1,12 @@
 import * as schema from "@shared/schema";
-import * as pg from "pg";
+import { createRequire } from "module";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { attachDatabasePool } from "@vercel/functions";
 import { config } from "./config";
 import { getRdsIamToken } from "./rds-iam";
 
-const Pool =
-  (pg as any).Pool ??
-  (pg as any).default?.Pool ??
-  (pg as any).default ??
-  (pg as any);
+const require = createRequire(import.meta.url);
+const { Pool } = require("pg");
 
 if (typeof Pool !== "function") {
   throw new Error("Pg Pool constructor unavailable");
