@@ -15,7 +15,7 @@ import {
     Bell,
     LogOut,
 } from 'lucide-react';
-import { getCampaignAuth, setCampaignAuth, getCampaignAuthHeader } from '@/components/campaign/CampaignAuth';
+import { setCampaignAuth, getCampaignAuthHeader, requireCampaignSession } from '@/components/campaign/CampaignAuth';
 
 interface Campaign {
     id: number;
@@ -60,26 +60,63 @@ export default function CSDashboard() {
     const [search, setSearch] = useState('');
 
     useEffect(() => {
-        const auth = getCampaignAuth();
-        if (!auth.token || auth.user?.portalType !== 'cs') {
-            setLocation('/cs/login');
-            return;
-        }
+        let isMounted = true;
+        const loadCampaigns = async () => {
+            const res = await fetch('/api/cs/campaigns', {
+                headers: getCampaignAuthHeader(),
+                credentials: 'include',
+            });
+            if (!res.ok) {
+                throw new Error('Failed to load campaigns');
+            }
+            return res.json();
+        };
 
-        fetch('/api/cs/campaigns', {
-            headers: getCampaignAuthHeader(),
-        })
-            .then(res => res.json())
-            .then(data => {
+        (async () => {
+            const user = await requireCampaignSession('cs');
+            if (!user) {
+                setLocation('/cs/login');
+                return;
+            }
+
+            try {
+                const data = await loadCampaigns();
+                if (!isMounted) return;
                 setCampaigns(data);
-                setLoading(false);
-            })
-            .catch(() => setLoading(false));
+            } catch {
+                if (!isMounted) return;
+            } finally {
+                if (isMounted) setLoading(false);
+            }
+        })();
+
+        const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+        const ws = new WebSocket(`${protocol}://${window.location.host}/ws`);
+
+        ws.onmessage = async (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                if (data?.type === 'campaign_event') {
+                    const updated = await loadCampaigns();
+                    if (isMounted) setCampaigns(updated);
+                }
+            } catch {
+                // ignore parse errors
+            }
+        };
+
+        return () => {
+            isMounted = false;
+            ws.close();
+        };
     }, [setLocation]);
 
     const handleLogout = () => {
-        setCampaignAuth(null, null);
-        setLocation('/cs/login');
+        fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
+            .finally(() => {
+                setCampaignAuth(null);
+                setLocation('/cs/login');
+            });
     };
 
     const filteredCampaigns = campaigns.filter(c => {

@@ -8,11 +8,11 @@ export interface CampaignAuthUser {
     email: string;
     portalType: 'cs' | 'customer' | 'agency';
     campaignId?: number;
+    tenantId?: number;
 }
 
 interface AuthState {
     user: CampaignAuthUser | null;
-    token: string | null;
     isLoading: boolean;
 }
 
@@ -25,33 +25,48 @@ export function getCampaignAuth(): AuthState {
         try {
             return JSON.parse(stored);
         } catch {
-            return { user: null, token: null, isLoading: false };
+            return { user: null, isLoading: false };
         }
     }
-    return { user: null, token: null, isLoading: false };
+    return { user: null, isLoading: false };
 }
 
-export function setCampaignAuth(user: CampaignAuthUser | null, token: string | null) {
-    if (user && token) {
-        localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({ user, token, isLoading: false }));
+export function setCampaignAuth(user: CampaignAuthUser | null) {
+    if (user) {
+        localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({ user, isLoading: false }));
     } else {
         localStorage.removeItem(AUTH_STORAGE_KEY);
     }
 }
 
 export function getCampaignAuthHeader(): Record<string, string> {
-    const auth = getCampaignAuth();
-    if (auth.token) {
-        return { Authorization: `Bearer ${auth.token}` };
-    }
     return {};
+}
+
+export async function requireCampaignSession(portalType: CampaignAuthUser["portalType"]): Promise<CampaignAuthUser | null> {
+    try {
+        const res = await fetch('/api/auth/session', { credentials: 'include' });
+        if (!res.ok) {
+            setCampaignAuth(null);
+            return null;
+        }
+        const data = await res.json();
+        if (data?.user?.portalType !== portalType) {
+            setCampaignAuth(null);
+            return null;
+        }
+        setCampaignAuth(data.user);
+        return data.user as CampaignAuthUser;
+    } catch {
+        setCampaignAuth(null);
+        return null;
+    }
 }
 
 // Magic Link Request Component
 export function MagicLinkRequest({ portalType }: { portalType: 'cs' | 'customer' | 'agency' }) {
     const [email, setEmail] = useState('');
     const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
-    const [debugUrl, setDebugUrl] = useState<string | null>(null);
 
     const portalNames = {
         cs: 'CS Dashboard',
@@ -70,12 +85,8 @@ export function MagicLinkRequest({ portalType }: { portalType: 'cs' | 'customer'
                 body: JSON.stringify({ email, portalType }),
             });
 
-            const data = await res.json();
             if (res.ok) {
                 setStatus('success');
-                if (data.debug_url) {
-                    setDebugUrl(data.debug_url);
-                }
             } else {
                 setStatus('error');
             }
@@ -103,14 +114,6 @@ export function MagicLinkRequest({ portalType }: { portalType: 'cs' | 'customer'
                     <div className="text-center">
                         <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
                         <p className="text-green-700 font-medium">Check your email for the login link!</p>
-                        {debugUrl && (
-                            <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                                <p className="text-sm text-gray-500 mb-2">Debug: Click to login directly</p>
-                                <a href={debugUrl} className="text-blue-600 underline text-sm break-all">
-                                    {debugUrl}
-                                </a>
-                            </div>
-                        )}
                     </div>
                 ) : (
                     <form onSubmit={handleSubmit}>
@@ -168,11 +171,11 @@ export function MagicLinkVerify({ portalType }: { portalType: 'cs' | 'customer' 
             return;
         }
 
-        fetch(`/api/auth/verify/${token}`)
+        fetch(`/api/auth/verify/${token}`, { credentials: 'include' })
             .then(res => res.json())
             .then(data => {
-                if (data.token && data.user) {
-                    setCampaignAuth(data.user, data.token);
+                if (data.user) {
+                    setCampaignAuth(data.user);
                     setStatus('success');
 
                     // Redirect to appropriate portal

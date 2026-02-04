@@ -33,6 +33,36 @@ npm run db:push   # apply schema
 npm run dev       # server + Vite dev
 ```
 
+## Campaign approval system (production setup)
+
+1. Copy `.env.example` to `.env` and set all required production values (Google Workspace SMTP relay, GCS, JWT secret, BASE_URL, etc.).
+2. Apply schema:
+
+```bash
+npm run db:push
+```
+
+3. Bootstrap the first tenant + CS user:
+
+```bash
+BOOTSTRAP_TENANT_DOMAIN=your-domain.example \
+BOOTSTRAP_TENANT_NAME="Your Tenant Name" \
+BOOTSTRAP_CS_EMAIL=cs@your-domain.example \
+npm run bootstrap
+```
+
+4. Start the server:
+
+```bash
+npm run dev
+```
+
+CS users, agencies, and customers authenticate via magic links. Campaign creation and approvals run end-to-end with real email delivery, GCS file storage, audit logging, and realtime updates.
+
+## Google Cloud deployment
+
+Production deployment on Google Cloud (Cloud Run + Cloud SQL + GCS + Google Workspace SMTP relay) is supported. See `DEPLOY_GCP.md` for a full, production-grade setup checklist and deployment steps.
+
 ## Architecture (summary)
 
 - **Multi-tenant foundation:** Tenant as first-class concept; all entities carry `tenant_id`; domain-based resolution.

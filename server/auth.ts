@@ -4,13 +4,16 @@ import type { Request, Response, NextFunction } from "express";
 import { db } from "./db";
 import { magicLinks } from "@shared/schema";
 import { eq, and, gt, isNull } from "drizzle-orm";
+import { config } from "./config";
 
-const JWT_SECRET = process.env.JWT_SECRET || "campaign-approval-poc-secret-change-in-production";
-const MAGIC_LINK_EXPIRY_MINUTES = 60; // 1 hour
-const JWT_EXPIRY = "7d"; // 7 days
+const JWT_SECRET = config.jwtSecret;
+const MAGIC_LINK_EXPIRY_MINUTES = config.magicLinkExpiryMinutes; // 1 hour default
+const JWT_EXPIRY_SECONDS = config.jwtExpiryDays * 24 * 60 * 60;
+export const AUTH_COOKIE_NAME = "campaign_auth";
 
 export interface AuthUser {
     email: string;
+    tenantId: number;
     portalType: "cs" | "customer" | "agency";
     campaignId?: number;
 }
@@ -19,20 +22,19 @@ export interface AuthUser {
  * Generate a magic link token and store it in the database
  */
 export async function createMagicLink(
+    tenantId: number,
     email: string,
     portalType: "cs" | "customer" | "agency",
     campaignId?: number
 ): Promise<string> {
-    if (!db) {
-        throw new Error("Database not available");
-    }
-
     const token = crypto.randomBytes(32).toString("hex");
+    const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
     const expiresAt = new Date(Date.now() + MAGIC_LINK_EXPIRY_MINUTES * 60 * 1000);
 
     await db.insert(magicLinks).values({
-        token,
+        token: tokenHash,
         email,
+        tenantId,
         portalType,
         campaignId: campaignId || null,
         expiresAt,
@@ -45,16 +47,13 @@ export async function createMagicLink(
  * Verify a magic link token and return the user info
  */
 export async function verifyMagicLink(token: string): Promise<AuthUser | null> {
-    if (!db) {
-        throw new Error("Database not available");
-    }
-
+    const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
     const [link] = await db
         .select()
         .from(magicLinks)
         .where(
             and(
-                eq(magicLinks.token, token),
+                eq(magicLinks.token, tokenHash),
                 isNull(magicLinks.usedAt),
                 gt(magicLinks.expiresAt, new Date())
             )
@@ -73,6 +72,7 @@ export async function verifyMagicLink(token: string): Promise<AuthUser | null> {
 
     return {
         email: link.email,
+        tenantId: link.tenantId,
         portalType: link.portalType as AuthUser["portalType"],
         campaignId: link.campaignId || undefined,
     };
@@ -82,7 +82,7 @@ export async function verifyMagicLink(token: string): Promise<AuthUser | null> {
  * Generate a JWT token for an authenticated user
  */
 export function generateJWT(user: AuthUser): string {
-    return jwt.sign(user, JWT_SECRET, { expiresIn: JWT_EXPIRY });
+    return jwt.sign(user, JWT_SECRET, { expiresIn: JWT_EXPIRY_SECONDS });
 }
 
 /**
@@ -96,18 +96,41 @@ export function verifyJWT(token: string): AuthUser | null {
     }
 }
 
+function parseCookies(cookieHeader?: string): Record<string, string> {
+    if (!cookieHeader) return {};
+    return cookieHeader
+        .split(";")
+        .map((part) => part.trim())
+        .filter(Boolean)
+        .reduce<Record<string, string>>((acc, part) => {
+            const idx = part.indexOf("=");
+            if (idx === -1) return acc;
+            const key = part.slice(0, idx).trim();
+            const value = part.slice(idx + 1).trim();
+            acc[key] = decodeURIComponent(value);
+            return acc;
+        }, {});
+}
+
+export function getAuthTokenFromRequest(req: Request): string | null {
+    const authHeader = req.headers.authorization;
+    if (authHeader?.startsWith("Bearer ")) {
+        return authHeader.substring(7);
+    }
+    const cookies = parseCookies(req.headers.cookie);
+    return cookies[AUTH_COOKIE_NAME] || null;
+}
+
 /**
  * Express middleware to require authentication
  */
 export function requireAuth(allowedPortals?: AuthUser["portalType"][]) {
     return (req: Request, res: Response, next: NextFunction) => {
-        const authHeader = req.headers.authorization;
-
-        if (!authHeader?.startsWith("Bearer ")) {
+        const token = getAuthTokenFromRequest(req);
+        if (!token) {
             return res.status(401).json({ message: "Authorization required" });
         }
 
-        const token = authHeader.substring(7);
         const user = verifyJWT(token);
 
         if (!user) {

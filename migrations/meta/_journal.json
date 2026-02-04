@@ -8,6 +8,13 @@
       "when": 1769957912988,
       "tag": "0000_colossal_impossible_man",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1770143399648,
+      "tag": "0001_campaign_notifications",
+      "breakpoints": true
     }
   ]
 }

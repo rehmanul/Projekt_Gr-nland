@@ -20,16 +20,17 @@ export default function PostJob() {
   const { mutate: createJob, isPending } = useCreateJob();
   const { data: employers } = useEmployers();
 
-  const form = useForm<InsertJob>({
-    resolver: zodResolver(insertJobSchema),
+  type JobFormValues = Omit<InsertJob, "tenantId">;
+
+  const form = useForm<JobFormValues>({
+    resolver: zodResolver(insertJobSchema.omit({ tenantId: true })),
     defaultValues: {
-      tenantId: 1, // Default to 1 for demo
       employmentType: "full-time",
       visibility: ["primary"]
     }
   });
 
-  const onSubmit = (data: InsertJob) => {
+  const onSubmit = (data: JobFormValues) => {
     createJob(data, {
       onSuccess: () => {
         toast({
@@ -62,7 +63,7 @@ export default function PostJob() {
 
         <Card className="p-8 shadow-sm">
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            {/* Employer Selection (Mock Auth) */}
+            {/* Employer Selection */}
             <div className="space-y-2">
               <Label htmlFor="employerId">Posting on behalf of</Label>
               <Select

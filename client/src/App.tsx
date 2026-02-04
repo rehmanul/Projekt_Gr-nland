@@ -23,8 +23,12 @@ import NotFound from "@/pages/not-found";
 
 // Campaign Portal Pages
 import CSDashboard from "@/pages/campaign/CSDashboard";
+import CSCampaignDetail from "@/pages/campaign/CSCampaignDetail";
+import CampaignCreate from "@/pages/campaign/CampaignCreate";
 import CustomerPortal from "@/pages/campaign/CustomerPortal";
+import CustomerDashboard from "@/pages/campaign/CustomerDashboard";
 import AgencyPortal from "@/pages/campaign/AgencyPortal";
+import AgencyDashboard from "@/pages/campaign/AgencyDashboard";
 import { MagicLinkRequest, MagicLinkVerify } from "@/components/campaign/CampaignAuth";
 
 function Router() {
@@ -35,17 +39,19 @@ function Router() {
         {/* Campaign Portal Routes (no main layout) */}
         <Route path="/cs/login" component={() => <MagicLinkRequest portalType="cs" />} />
         <Route path="/cs/auth/verify" component={() => <MagicLinkVerify portalType="cs" />} />
+        <Route path="/cs/campaigns/new" component={CampaignCreate} />
+        <Route path="/cs/campaigns/:id" component={CSCampaignDetail} />
         <Route path="/cs" component={CSDashboard} />
-        <Route path="/cs/campaigns/:id" component={CSDashboard} />
 
         <Route path="/customer/login" component={() => <MagicLinkRequest portalType="customer" />} />
         <Route path="/customer/auth/verify" component={() => <MagicLinkVerify portalType="customer" />} />
         <Route path="/customer/campaign/:id" component={CustomerPortal} />
+        <Route path="/customer" component={CustomerDashboard} />
 
         <Route path="/agency/login" component={() => <MagicLinkRequest portalType="agency" />} />
         <Route path="/agency/auth/verify" component={() => <MagicLinkVerify portalType="agency" />} />
         <Route path="/agency/campaign/:id" component={AgencyPortal} />
-        <Route path="/agency" component={AgencyPortal} />
+        <Route path="/agency" component={AgencyDashboard} />
 
         {/* Main Site Routes (with layout) */}
         <Route path="/">

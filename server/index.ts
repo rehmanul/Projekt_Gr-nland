@@ -4,8 +4,44 @@ import { registerRoutes } from "./routes";
 import { initStorage } from "./storage";
 import { serveStatic } from "./static";
 import { createServer, Server } from "http";
+import { config } from "./config";
+import { initReminders } from "./reminders";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 
 const app = express();
+
+app.use(
+  helmet(
+    config.nodeEnv === "production"
+      ? {
+          contentSecurityPolicy: {
+            directives: {
+              defaultSrc: ["'self'"],
+              imgSrc: ["'self'", "data:", "https:"],
+              styleSrc: ["'self'", "'unsafe-inline'"],
+              scriptSrc: ["'self'"],
+              connectSrc: ["'self'", "https:", "wss:"],
+              fontSrc: ["'self'", "data:", "https:"],
+              objectSrc: ["'none'"],
+              baseUri: ["'self'"],
+              frameAncestors: ["'none'"],
+            },
+          },
+        }
+      : { contentSecurityPolicy: false },
+  ),
+);
+
+app.use(
+  "/api",
+  rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 1000,
+    standardHeaders: true,
+    legacyHeaders: false,
+  }),
+);
 
 // Only create http server for non-Vercel environments
 let httpServer: Server | null = null;
@@ -107,8 +143,8 @@ export async function createApp(): Promise<express.Express> {
 if (!process.env.VERCEL) {
   (async () => {
     await createApp();
-    const port = parseInt(process.env.PORT || "5000", 10);
-    const host = process.env.HOST || "127.0.0.1";
+    const port = config.port;
+    const host = config.host || "127.0.0.1";
     httpServer!.listen(
       {
         port,
@@ -116,6 +152,7 @@ if (!process.env.VERCEL) {
       },
       () => {
         log(`serving on http://${host}:${port}`);
+        initReminders();
       },
     );
   })();

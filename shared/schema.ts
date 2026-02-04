@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb, varchar, index } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb, varchar, index, uniqueIndex } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations, sql } from "drizzle-orm";
@@ -174,9 +174,26 @@ export const campaignActivities = pgTable("campaign_activities", {
   campaignIdx: index("idx_campaign_activities_campaign").on(table.campaignId),
 }));
 
+export const campaignNotifications = pgTable("campaign_notifications", {
+  id: serial("id").primaryKey(),
+  campaignId: integer("campaign_id").notNull().references(() => campaigns.id),
+  recipientEmail: varchar("recipient_email", { length: 255 }).notNull(),
+  type: varchar("type", { length: 100 }).notNull(),
+  status: varchar("status", { length: 50 }).notNull().default("pending"),
+  sentAt: timestamp("sent_at"),
+  error: text("error"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (table) => ({
+  campaignIdx: index("idx_campaign_notifications_campaign").on(table.campaignId),
+  recipientIdx: index("idx_campaign_notifications_recipient").on(table.recipientEmail),
+  typeIdx: index("idx_campaign_notifications_type").on(table.type),
+  uniqueIdx: uniqueIndex("uniq_campaign_notifications").on(table.campaignId, table.type, table.recipientEmail),
+}));
+
 export const magicLinks = pgTable("magic_links", {
   id: serial("id").primaryKey(),
   token: varchar("token", { length: 255 }).unique().notNull(),
+  tenantId: integer("tenant_id").notNull().references(() => tenants.id),
   email: varchar("email", { length: 255 }).notNull(),
   portalType: varchar("portal_type", { length: 50 }).notNull(), // 'cs', 'customer', 'agency'
   campaignId: integer("campaign_id").references(() => campaigns.id),
@@ -186,6 +203,7 @@ export const magicLinks = pgTable("magic_links", {
 }, (table) => ({
   tokenIdx: index("idx_magic_links_token").on(table.token),
   emailIdx: index("idx_magic_links_email").on(table.email),
+  tenantIdx: index("idx_magic_links_tenant").on(table.tenantId),
 }));
 
 // === RELATIONS ===
@@ -273,10 +291,21 @@ export const campaignActivitiesRelations = relations(campaignActivities, ({ one 
   }),
 }));
 
+export const campaignNotificationsRelations = relations(campaignNotifications, ({ one }) => ({
+  campaign: one(campaigns, {
+    fields: [campaignNotifications.campaignId],
+    references: [campaigns.id],
+  }),
+}));
+
 export const magicLinksRelations = relations(magicLinks, ({ one }) => ({
   campaign: one(campaigns, {
     fields: [magicLinks.campaignId],
     references: [campaigns.id],
+  }),
+  tenant: one(tenants, {
+    fields: [magicLinks.tenantId],
+    references: [tenants.id],
   }),
 }));
 
@@ -293,6 +322,7 @@ export const insertAgencySchema = createInsertSchema(agencies).omit({ id: true, 
 export const insertCampaignSchema = createInsertSchema(campaigns).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertCampaignAssetSchema = createInsertSchema(campaignAssets).omit({ id: true, uploadedAt: true });
 export const insertCampaignActivitySchema = createInsertSchema(campaignActivities).omit({ id: true, createdAt: true });
+export const insertCampaignNotificationSchema = createInsertSchema(campaignNotifications).omit({ id: true, createdAt: true, sentAt: true });
 export const insertMagicLinkSchema = createInsertSchema(magicLinks).omit({ id: true, createdAt: true });
 
 export type Tenant = typeof tenants.$inferSelect;
@@ -306,6 +336,7 @@ export type Agency = typeof agencies.$inferSelect;
 export type Campaign = typeof campaigns.$inferSelect;
 export type CampaignAsset = typeof campaignAssets.$inferSelect;
 export type CampaignActivity = typeof campaignActivities.$inferSelect;
+export type CampaignNotification = typeof campaignNotifications.$inferSelect;
 export type MagicLink = typeof magicLinks.$inferSelect;
 export type CampaignStatus = typeof campaignStatusEnum[number];
 
@@ -322,6 +353,7 @@ export type InsertAgency = z.infer<typeof insertAgencySchema>;
 export type InsertCampaign = z.infer<typeof insertCampaignSchema>;
 export type InsertCampaignAsset = z.infer<typeof insertCampaignAssetSchema>;
 export type InsertCampaignActivity = z.infer<typeof insertCampaignActivitySchema>;
+export type InsertCampaignNotification = z.infer<typeof insertCampaignNotificationSchema>;
 export type InsertMagicLink = z.infer<typeof insertMagicLinkSchema>;
 
 export type JobsQueryParams = {

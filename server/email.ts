@@ -1,45 +1,34 @@
 import nodemailer from "nodemailer";
+import type SMTPTransport from "nodemailer/lib/smtp-transport";
 import type { Campaign, Agency } from "@shared/schema";
 import { createMagicLink, buildMagicLinkUrl } from "./auth";
+import { config } from "./config";
 
-// Configure transporter - for POC, use ethereal.email for testing
-// In production, replace with actual SMTP/Resend/SendGrid config
 let transporter: nodemailer.Transporter | null = null;
 
 async function getTransporter(): Promise<nodemailer.Transporter> {
     if (transporter) return transporter;
 
-    if (process.env.SMTP_HOST) {
-        // Production SMTP config
-        transporter = nodemailer.createTransport({
-            host: process.env.SMTP_HOST,
-            port: parseInt(process.env.SMTP_PORT || "587"),
-            secure: process.env.SMTP_SECURE === "true",
-            auth: {
-                user: process.env.SMTP_USER,
-                pass: process.env.SMTP_PASS,
-            },
-        });
-    } else {
-        // Development: use ethereal.email for testing
-        const testAccount = await nodemailer.createTestAccount();
-        transporter = nodemailer.createTransport({
-            host: "smtp.ethereal.email",
-            port: 587,
-            secure: false,
-            auth: {
-                user: testAccount.user,
-                pass: testAccount.pass,
-            },
-        });
-        console.log(`[Email] Using test account: ${testAccount.user}`);
+    const transportOptions: SMTPTransport.Options = {
+        host: config.smtp.host,
+        port: config.smtp.port,
+        secure: config.smtp.secure,
+    };
+
+    if (config.smtp.authMode !== "none") {
+        transportOptions.auth = {
+            user: config.smtp.user,
+            pass: config.smtp.pass,
+        };
     }
+
+    transporter = nodemailer.createTransport(transportOptions);
 
     return transporter;
 }
 
-const BASE_URL = process.env.BASE_URL || "http://localhost:5000";
-const FROM_EMAIL = process.env.FROM_EMAIL || "noreply@campaign-approval.local";
+const BASE_URL = config.baseUrl;
+const FROM_EMAIL = config.smtp.fromEmail;
 
 interface EmailParams {
     to: string;
@@ -49,27 +38,45 @@ interface EmailParams {
 
 async function sendEmail(params: EmailParams): Promise<void> {
     const transport = await getTransporter();
-    const info = await transport.sendMail({
+    await transport.sendMail({
         from: FROM_EMAIL,
         to: params.to,
         subject: params.subject,
         html: params.html,
     });
-
-    // Log preview URL for ethereal.email testing
-    const previewUrl = nodemailer.getTestMessageUrl(info);
-    if (previewUrl) {
-        console.log(`[Email] Preview URL: ${previewUrl}`);
-    }
 }
 
 // === CAMPAIGN NOTIFICATION EMAILS ===
+
+export async function sendMagicLinkEmail(
+    recipientEmail: string,
+    portalType: "cs" | "customer" | "agency",
+    loginUrl: string
+): Promise<void> {
+    const portalLabel = portalType === "cs" ? "CS Dashboard" : portalType === "customer" ? "Customer Portal" : "Agency Portal";
+
+    await sendEmail({
+        to: recipientEmail,
+        subject: `Your ${portalLabel} login link`,
+        html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h1 style="color: #0066cc;">${portalLabel} Access</h1>
+        <p>Hello,</p>
+        <p>Use the secure link below to access your ${portalLabel}.</p>
+        <a href="${loginUrl}" style="display: inline-block; background: #0066cc; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 16px 0;">
+          Open ${portalLabel} →
+        </a>
+        <p style="color: #666; font-size: 12px;">This link will expire in 1 hour. If expired, request a new login link.</p>
+      </div>
+    `,
+    });
+}
 
 export async function sendCampaignCreatedEmail(
     campaign: Campaign,
     customerEmail: string
 ): Promise<void> {
-    const token = await createMagicLink(customerEmail, "customer", campaign.id);
+    const token = await createMagicLink(campaign.tenantId, customerEmail, "customer", campaign.id);
     const loginUrl = buildMagicLinkUrl(BASE_URL, token, "customer", campaign.id);
 
     const deadlineDate = new Date(campaign.assetDeadline).toLocaleDateString("de-DE", {
@@ -102,7 +109,7 @@ export async function sendAssetsUploadedEmail(
     campaign: Campaign,
     agency: Agency
 ): Promise<void> {
-    const token = await createMagicLink(agency.email, "agency", campaign.id);
+    const token = await createMagicLink(campaign.tenantId, agency.email, "agency", campaign.id);
     const loginUrl = buildMagicLinkUrl(BASE_URL, token, "agency", campaign.id);
 
     await sendEmail({
@@ -127,7 +134,7 @@ export async function sendDraftSubmittedEmail(
     campaign: Campaign,
     customerEmail: string
 ): Promise<void> {
-    const token = await createMagicLink(customerEmail, "customer", campaign.id);
+    const token = await createMagicLink(campaign.tenantId, customerEmail, "customer", campaign.id);
     const loginUrl = buildMagicLinkUrl(BASE_URL, token, "customer", campaign.id);
 
     await sendEmail({
@@ -153,7 +160,7 @@ export async function sendRevisionRequestedEmail(
     agency: Agency,
     feedback: string
 ): Promise<void> {
-    const token = await createMagicLink(agency.email, "agency", campaign.id);
+    const token = await createMagicLink(campaign.tenantId, agency.email, "agency", campaign.id);
     const loginUrl = buildMagicLinkUrl(BASE_URL, token, "agency", campaign.id);
 
     await sendEmail({
@@ -190,7 +197,7 @@ export async function sendCampaignApprovedEmail(
     });
 
     // Notify CS
-    const csToken = await createMagicLink(csEmail, "cs", campaign.id);
+    const csToken = await createMagicLink(campaign.tenantId, csEmail, "cs", campaign.id);
     const csUrl = buildMagicLinkUrl(BASE_URL, csToken, "cs", campaign.id);
 
     await sendEmail({
@@ -209,7 +216,7 @@ export async function sendCampaignApprovedEmail(
     });
 
     // Notify Agency
-    const agencyToken = await createMagicLink(agency.email, "agency", campaign.id);
+    const agencyToken = await createMagicLink(campaign.tenantId, agency.email, "agency", campaign.id);
     const agencyUrl = buildMagicLinkUrl(BASE_URL, agencyToken, "agency", campaign.id);
 
     await sendEmail({
@@ -236,7 +243,7 @@ export async function sendDeadlineReminderEmail(
     daysRemaining: number,
     reminderType: "asset" | "draft"
 ): Promise<void> {
-    const token = await createMagicLink(recipientEmail, portalType, campaign.id);
+    const token = await createMagicLink(campaign.tenantId, recipientEmail, portalType, campaign.id);
     const loginUrl = buildMagicLinkUrl(BASE_URL, token, portalType, campaign.id);
 
     const urgency = daysRemaining <= 1 ? "🚨 URGENT" : daysRemaining <= 3 ? "⚠️ Reminder" : "📅 Reminder";
@@ -253,6 +260,35 @@ export async function sendDeadlineReminderEmail(
           Take Action Now →
         </a>
         <p style="color: #666; font-size: 12px;">This link will expire in 1 hour.</p>
+      </div>
+    `,
+    });
+}
+
+export async function sendEscalationEmail(
+    campaign: Campaign,
+    csEmail: string,
+    reason: "asset_deadline_overdue" | "draft_overdue",
+    daysOverdue: number
+): Promise<void> {
+    const token = await createMagicLink(campaign.tenantId, csEmail, "cs", campaign.id);
+    const loginUrl = buildMagicLinkUrl(BASE_URL, token, "cs", campaign.id);
+
+    const reasonLabel = reason === "asset_deadline_overdue"
+        ? "Customer assets overdue"
+        : "Draft overdue";
+
+    await sendEmail({
+        to: csEmail,
+        subject: `Escalation: ${reasonLabel} for ${campaign.customerName}`,
+        html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h1 style="color: #c0392b;">Escalation Required</h1>
+        <p>${reasonLabel} for campaign <strong>${campaign.campaignType}</strong>.</p>
+        <p>Overdue by <strong>${daysOverdue} day(s)</strong>.</p>
+        <a href="${loginUrl}" style="display: inline-block; background: #c0392b; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 16px 0;">
+          Review Campaign →
+        </a>
       </div>
     `,
     });

@@ -4,17 +4,22 @@ import {
     campaigns,
     campaignAssets,
     campaignActivities,
+    campaignNotifications,
+    users,
     type Agency,
     type Campaign,
     type CampaignAsset,
     type CampaignActivity,
+    type CampaignNotification,
     type InsertAgency,
     type InsertCampaign,
     type InsertCampaignAsset,
     type InsertCampaignActivity,
+    type InsertCampaignNotification,
     type CampaignStatus,
+    type User,
 } from "@shared/schema";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, inArray } from "drizzle-orm";
 
 // === AGENCY OPERATIONS ===
 
@@ -32,9 +37,12 @@ export async function getAgency(tenantId: number, id: number): Promise<Agency | 
     return agency;
 }
 
-export async function getAgencyByEmail(email: string): Promise<Agency | undefined> {
+export async function getAgencyByEmail(tenantId: number, email: string): Promise<Agency | undefined> {
     if (!db) throw new Error("Database not available");
-    const [agency] = await db.select().from(agencies).where(eq(agencies.email, email));
+    const [agency] = await db
+        .select()
+        .from(agencies)
+        .where(and(eq(agencies.tenantId, tenantId), eq(agencies.email, email)));
     return agency;
 }
 
@@ -42,6 +50,28 @@ export async function createAgency(data: InsertAgency): Promise<Agency> {
     if (!db) throw new Error("Database not available");
     const [agency] = await db.insert(agencies).values(data).returning();
     return agency;
+}
+
+// === CS USER OPERATIONS ===
+
+const CS_ROLES = ["cs", "admin"] as const;
+
+export async function getCsUserByEmail(tenantId: number, email: string): Promise<User | undefined> {
+    if (!db) throw new Error("Database not available");
+    const [user] = await db
+        .select()
+        .from(users)
+        .where(and(eq(users.tenantId, tenantId), eq(users.email, email), inArray(users.role, CS_ROLES as any)));
+    return user;
+}
+
+export async function getCsUserById(tenantId: number, id: number): Promise<User | undefined> {
+    if (!db) throw new Error("Database not available");
+    const [user] = await db
+        .select()
+        .from(users)
+        .where(and(eq(users.tenantId, tenantId), eq(users.id, id), inArray(users.role, CS_ROLES as any)));
+    return user;
 }
 
 // === CAMPAIGN OPERATIONS ===
@@ -156,6 +186,15 @@ export async function createCampaignAsset(data: InsertCampaignAsset): Promise<Ca
     return asset;
 }
 
+export async function getCampaignAssetById(campaignId: number, assetId: number): Promise<CampaignAsset | undefined> {
+    if (!db) throw new Error("Database not available");
+    const [asset] = await db
+        .select()
+        .from(campaignAssets)
+        .where(and(eq(campaignAssets.campaignId, campaignId), eq(campaignAssets.id, assetId)));
+    return asset;
+}
+
 // === CAMPAIGN ACTIVITIES (AUDIT LOG) ===
 
 export async function getCampaignActivities(campaignId: number): Promise<CampaignActivity[]> {
@@ -171,6 +210,34 @@ export async function logCampaignActivity(data: InsertCampaignActivity): Promise
     if (!db) throw new Error("Database not available");
     const [activity] = await db.insert(campaignActivities).values(data).returning();
     return activity;
+}
+
+// === CAMPAIGN NOTIFICATIONS ===
+
+export async function createCampaignNotification(data: InsertCampaignNotification): Promise<CampaignNotification | null> {
+    if (!db) throw new Error("Database not available");
+    const [notification] = await db
+        .insert(campaignNotifications)
+        .values(data)
+        .onConflictDoNothing()
+        .returning();
+    return notification ?? null;
+}
+
+export async function markCampaignNotificationSent(id: number): Promise<void> {
+    if (!db) throw new Error("Database not available");
+    await db
+        .update(campaignNotifications)
+        .set({ status: "sent", sentAt: new Date() })
+        .where(eq(campaignNotifications.id, id));
+}
+
+export async function markCampaignNotificationFailed(id: number, error: string): Promise<void> {
+    if (!db) throw new Error("Database not available");
+    await db
+        .update(campaignNotifications)
+        .set({ status: "failed", error })
+        .where(eq(campaignNotifications.id, id));
 }
 
 // === HELPER FUNCTIONS ===

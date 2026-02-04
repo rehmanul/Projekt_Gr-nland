@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { useLocation, useRoute } from 'wouter';
+import { useState, useEffect, useRef } from 'react';
+import { useLocation, useRoute, Link } from 'wouter';
 import { motion } from 'framer-motion';
 import {
     ArrowLeft,
@@ -13,7 +13,7 @@ import {
     Calendar,
     AlertTriangle,
 } from 'lucide-react';
-import { getCampaignAuth, setCampaignAuth, getCampaignAuthHeader } from '@/components/campaign/CampaignAuth';
+import { getCampaignAuthHeader, requireCampaignSession, setCampaignAuth } from '@/components/campaign/CampaignAuth';
 
 interface Campaign {
     id: number;
@@ -34,6 +34,7 @@ interface CampaignAsset {
     filename: string;
     uploadedAt: string;
     uploadedBy: string;
+    downloadUrl?: string;
 }
 
 interface CampaignActivity {
@@ -65,24 +66,115 @@ export default function CustomerPortal() {
     const [uploading, setUploading] = useState(false);
     const [showFeedbackForm, setShowFeedbackForm] = useState(false);
     const [feedback, setFeedback] = useState('');
+    const startReviewAttemptRef = useRef<string | null>(null);
+
+    const handleLogout = () => {
+        fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
+            .finally(() => {
+                setCampaignAuth(null);
+                setLocation('/customer/login');
+            });
+    };
+
+    const handleDownload = async (asset: CampaignAsset) => {
+        if (!asset.downloadUrl) return;
+        try {
+            const res = await fetch(asset.downloadUrl, { credentials: 'include' });
+            if (!res.ok) return;
+            const data = await res.json();
+            if (data?.url) {
+                window.location.href = data.url;
+            }
+        } catch (err) {
+            console.error('Download failed:', err);
+        }
+    };
+
+    const loadCampaign = async () => {
+        const res = await fetch(`/api/customer/campaign/${id}`, {
+            headers: getCampaignAuthHeader(),
+            credentials: 'include',
+        });
+        if (!res.ok) {
+            throw new Error('Failed to load campaign');
+        }
+        return res.json();
+    };
 
     useEffect(() => {
-        const auth = getCampaignAuth();
-        if (!auth.token || auth.user?.portalType !== 'customer') {
-            setLocation('/customer/login');
-            return;
-        }
+        let isMounted = true;
+        (async () => {
+            const user = await requireCampaignSession('customer');
+            if (!user) {
+                setLocation('/customer/login');
+                return;
+            }
 
-        fetch(`/api/customer/campaign/${id}`, {
-            headers: getCampaignAuthHeader(),
-        })
-            .then(res => res.json())
-            .then(data => {
+            try {
+                const data = await loadCampaign();
+                if (!isMounted) return;
                 setCampaign(data);
-                setLoading(false);
-            })
-            .catch(() => setLoading(false));
+            } catch {
+                if (!isMounted) return;
+            } finally {
+                if (isMounted) setLoading(false);
+            }
+        })();
+
+        return () => {
+            isMounted = false;
+        };
     }, [id, setLocation]);
+
+    useEffect(() => {
+        if (!id) return;
+        const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+        const ws = new WebSocket(`${protocol}://${window.location.host}/ws`);
+
+        ws.onopen = () => {
+            ws.send(JSON.stringify({ type: 'subscribe', campaignId: Number(id) }));
+        };
+
+        ws.onmessage = async (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                if (data?.type === 'campaign_event' && data?.campaignId === Number(id)) {
+                    const updated = await loadCampaign();
+                    setCampaign(updated);
+                }
+            } catch {
+                // ignore parse errors
+            }
+        };
+
+        return () => {
+            ws.close();
+        };
+    }, [id]);
+
+    useEffect(() => {
+        if (!campaign || !id) return;
+        if (campaign.status !== 'draft_submitted') return;
+        const attemptKey = `${campaign.id}:${campaign.status}`;
+        if (startReviewAttemptRef.current === attemptKey) return;
+        startReviewAttemptRef.current = attemptKey;
+
+        (async () => {
+            try {
+                const res = await fetch(`/api/customer/campaign/${campaign.id}/start-review`, {
+                    method: 'POST',
+                    headers: getCampaignAuthHeader(),
+                    credentials: 'include',
+                });
+                if (res.ok) {
+                    const updated = await loadCampaign();
+                    setCampaign(updated);
+                }
+            } catch (err) {
+                console.error('Start review failed:', err);
+            }
+        })();
+    }, [campaign, id]);
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;
@@ -96,6 +188,7 @@ export default function CustomerPortal() {
             const res = await fetch(`/api/customer/campaign/${id}/assets`, {
                 method: 'POST',
                 headers: getCampaignAuthHeader(),
+                credentials: 'include',
                 body: formData,
             });
             if (res.ok) {
@@ -113,6 +206,7 @@ export default function CustomerPortal() {
             const res = await fetch(`/api/customer/campaign/${id}/approve`, {
                 method: 'POST',
                 headers: { ...getCampaignAuthHeader(), 'Content-Type': 'application/json' },
+                credentials: 'include',
             });
             if (res.ok) {
                 window.location.reload();
@@ -129,6 +223,7 @@ export default function CustomerPortal() {
             const res = await fetch(`/api/customer/campaign/${id}/request-changes`, {
                 method: 'POST',
                 headers: { ...getCampaignAuthHeader(), 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify({ feedback }),
             });
             if (res.ok) {
@@ -162,6 +257,20 @@ export default function CustomerPortal() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+            <header className="bg-white border-b border-gray-200">
+                <div className="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
+                    <div className="flex items-center gap-3">
+                        <ArrowLeft className="w-5 h-5 text-blue-600" />
+                        <Link to="/customer" className="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                            All Campaigns
+                        </Link>
+                    </div>
+                    <button onClick={handleLogout} className="p-2 text-gray-500 hover:text-gray-700">
+                        <XCircle className="w-5 h-5" />
+                    </button>
+                </div>
+            </header>
+
             <div className="max-w-4xl mx-auto px-4 py-8">
                 {/* Header */}
                 <motion.div
@@ -254,9 +363,18 @@ export default function CustomerPortal() {
                                         <FileText className="w-5 h-5 text-gray-400" />
                                         <span className="text-gray-700">{asset.filename}</span>
                                     </div>
-                                    <span className="text-sm text-gray-500">
-                                        {new Date(asset.uploadedAt).toLocaleString()}
-                                    </span>
+                                    <div className="flex items-center gap-4">
+                                        <span className="text-sm text-gray-500">
+                                            {new Date(asset.uploadedAt).toLocaleString()}
+                                        </span>
+                                        <button
+                                            onClick={() => handleDownload(asset)}
+                                            className="flex items-center gap-1 text-blue-600 hover:text-blue-800"
+                                        >
+                                            <Download className="w-4 h-4" />
+                                            Download
+                                        </button>
+                                    </div>
                                 </div>
                             ))}
                         </div>
@@ -278,7 +396,10 @@ export default function CustomerPortal() {
                                         <FileText className="w-5 h-5 text-blue-600" />
                                         <span className="text-gray-700">{draft.filename}</span>
                                     </div>
-                                    <button className="flex items-center gap-1 text-blue-600 hover:text-blue-800">
+                                    <button
+                                        onClick={() => handleDownload(draft)}
+                                        className="flex items-center gap-1 text-blue-600 hover:text-blue-800"
+                                    >
                                         <Download className="w-4 h-4" />
                                         Download
                                     </button>

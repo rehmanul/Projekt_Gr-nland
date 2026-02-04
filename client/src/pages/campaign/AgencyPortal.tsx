@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useLocation, useRoute, Link } from 'wouter';
 import { motion } from 'framer-motion';
 import {
@@ -13,7 +13,7 @@ import {
     LogOut,
     Calendar,
 } from 'lucide-react';
-import { getCampaignAuth, setCampaignAuth, getCampaignAuthHeader } from '@/components/campaign/CampaignAuth';
+import { getCampaignAuthHeader, requireCampaignSession, setCampaignAuth } from '@/components/campaign/CampaignAuth';
 
 interface Campaign {
     id: number;
@@ -35,6 +35,7 @@ interface CampaignAsset {
     filename: string;
     uploadedAt: string;
     uploadedBy: string;
+    downloadUrl?: string;
 }
 
 interface CampaignActivity {
@@ -64,24 +65,115 @@ export default function AgencyPortalCampaign() {
     const [campaign, setCampaign] = useState<Campaign | null>(null);
     const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState(false);
+    const startDraftAttemptRef = useRef<string | null>(null);
+
+    const handleLogout = () => {
+        fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
+            .finally(() => {
+                setCampaignAuth(null);
+                setLocation('/agency/login');
+            });
+    };
+
+    const handleDownload = async (asset: CampaignAsset) => {
+        if (!asset.downloadUrl) return;
+        try {
+            const res = await fetch(asset.downloadUrl, { credentials: 'include' });
+            if (!res.ok) return;
+            const data = await res.json();
+            if (data?.url) {
+                window.location.href = data.url;
+            }
+        } catch (err) {
+            console.error('Download failed:', err);
+        }
+    };
+
+    const loadCampaign = async () => {
+        const res = await fetch(`/api/agency/campaign/${id}`, {
+            headers: getCampaignAuthHeader(),
+            credentials: 'include',
+        });
+        if (!res.ok) {
+            throw new Error('Failed to load campaign');
+        }
+        return res.json();
+    };
 
     useEffect(() => {
-        const auth = getCampaignAuth();
-        if (!auth.token || auth.user?.portalType !== 'agency') {
-            setLocation('/agency/login');
-            return;
-        }
+        let isMounted = true;
+        (async () => {
+            const user = await requireCampaignSession('agency');
+            if (!user) {
+                setLocation('/agency/login');
+                return;
+            }
 
-        fetch(`/api/agency/campaign/${id}`, {
-            headers: getCampaignAuthHeader(),
-        })
-            .then(res => res.json())
-            .then(data => {
+            try {
+                const data = await loadCampaign();
+                if (!isMounted) return;
                 setCampaign(data);
-                setLoading(false);
-            })
-            .catch(() => setLoading(false));
+            } catch {
+                if (!isMounted) return;
+            } finally {
+                if (isMounted) setLoading(false);
+            }
+        })();
+
+        return () => {
+            isMounted = false;
+        };
     }, [id, setLocation]);
+
+    useEffect(() => {
+        if (!id) return;
+        const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+        const ws = new WebSocket(`${protocol}://${window.location.host}/ws`);
+
+        ws.onopen = () => {
+            ws.send(JSON.stringify({ type: 'subscribe', campaignId: Number(id) }));
+        };
+
+        ws.onmessage = async (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                if (data?.type === 'campaign_event' && data?.campaignId === Number(id)) {
+                    const updated = await loadCampaign();
+                    setCampaign(updated);
+                }
+            } catch {
+                // ignore parse errors
+            }
+        };
+
+        return () => {
+            ws.close();
+        };
+    }, [id]);
+
+    useEffect(() => {
+        if (!campaign || !id) return;
+        if (!['assets_uploaded', 'revision_requested'].includes(campaign.status)) return;
+        const attemptKey = `${campaign.id}:${campaign.status}`;
+        if (startDraftAttemptRef.current === attemptKey) return;
+        startDraftAttemptRef.current = attemptKey;
+
+        (async () => {
+            try {
+                const res = await fetch(`/api/agency/campaign/${campaign.id}/start-draft`, {
+                    method: 'POST',
+                    headers: getCampaignAuthHeader(),
+                    credentials: 'include',
+                });
+                if (res.ok) {
+                    const updated = await loadCampaign();
+                    setCampaign(updated);
+                }
+            } catch (err) {
+                console.error('Start draft failed:', err);
+            }
+        })();
+    }, [campaign, id]);
 
     const handleDraftUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;
@@ -95,6 +187,7 @@ export default function AgencyPortalCampaign() {
             const res = await fetch(`/api/agency/campaign/${id}/draft`, {
                 method: 'POST',
                 headers: getCampaignAuthHeader(),
+                credentials: 'include',
                 body: formData,
             });
             if (res.ok) {
@@ -139,7 +232,7 @@ export default function AgencyPortalCampaign() {
                     <div className="flex items-center gap-4">
                         <Link to="/agency" className="text-purple-600 hover:text-purple-800">All Campaigns</Link>
                         <button
-                            onClick={() => { setCampaignAuth(null, null); setLocation('/agency/login'); }}
+                            onClick={handleLogout}
                             className="p-2 text-gray-500 hover:text-gray-700"
                         >
                             <LogOut className="w-5 h-5" />
@@ -219,7 +312,10 @@ export default function AgencyPortalCampaign() {
                                         <FileText className="w-5 h-5 text-gray-400" />
                                         <span className="text-gray-700">{asset.filename}</span>
                                     </div>
-                                    <button className="flex items-center gap-1 text-purple-600 hover:text-purple-800">
+                                    <button
+                                        onClick={() => handleDownload(asset)}
+                                        className="flex items-center gap-1 text-purple-600 hover:text-purple-800"
+                                    >
                                         <Download className="w-4 h-4" />
                                         Download
                                     </button>
@@ -282,9 +378,18 @@ export default function AgencyPortalCampaign() {
                                         <CheckCircle2 className="w-5 h-5 text-purple-600" />
                                         <span className="text-gray-700">{draft.filename}</span>
                                     </div>
-                                    <span className="text-sm text-gray-500">
-                                        {new Date(draft.uploadedAt).toLocaleString()}
-                                    </span>
+                                    <div className="flex items-center gap-4">
+                                        <span className="text-sm text-gray-500">
+                                            {new Date(draft.uploadedAt).toLocaleString()}
+                                        </span>
+                                        <button
+                                            onClick={() => handleDownload(draft)}
+                                            className="flex items-center gap-1 text-purple-600 hover:text-purple-800"
+                                        >
+                                            <Download className="w-4 h-4" />
+                                            Download
+                                        </button>
+                                    </div>
                                 </div>
                             ))}
                         </div>

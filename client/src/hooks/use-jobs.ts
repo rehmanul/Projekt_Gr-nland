@@ -40,7 +40,7 @@ export function useJob(id: number) {
 export function useCreateJob() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (data: InsertJob) => {
+    mutationFn: async (data: Omit<InsertJob, "tenantId">) => {
       // Ensure numeric fields are numbers (Zod coerce handles this mostly, but good to be safe)
       const payload = {
         ...data,
