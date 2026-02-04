@@ -17,6 +17,7 @@ module.exports = async function handler(req, res) {
     console.error("Vercel handler error:", error);
     return res.status(500).json({
       error: error?.message || "Unknown serverless init error",
+      stack: error?.stack,
       type: "SERVERLESS_INIT_ERROR",
     });
   }
