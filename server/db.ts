@@ -1,6 +1,7 @@
 import * as schema from "@shared/schema";
 import { Pool } from "pg";
 import { drizzle } from "drizzle-orm/node-postgres";
+import { attachDatabasePool } from "@vercel/functions";
 import { config } from "./config";
 import { getRdsIamToken } from "./rds-iam";
 
@@ -20,6 +21,7 @@ const poolConfig = config.databaseUrl
     };
 
 const pool = new Pool(poolConfig);
+attachDatabasePool(pool);
 
 const db = drizzle(pool, { schema });
 

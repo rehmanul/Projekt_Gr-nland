@@ -33,6 +33,7 @@ const envSchema = z.object({
   GCS_PREFIX: z.string().optional(),
   AWS_REGION: z.string().optional(),
   AWS_DEFAULT_REGION: z.string().optional(),
+  AWS_ROLE_ARN: z.string().optional(),
   AWS_ACCESS_KEY_ID: z.string().optional(),
   AWS_SECRET_ACCESS_KEY: z.string().optional(),
   AWS_SESSION_TOKEN: z.string().optional(),
@@ -160,6 +161,7 @@ export const config = {
   },
   aws: {
     region: resolvedAwsRegion,
+    roleArn: env.AWS_ROLE_ARN ?? "",
     accessKeyId: env.AWS_ACCESS_KEY_ID ?? "",
     secretAccessKey: env.AWS_SECRET_ACCESS_KEY ?? "",
     sessionToken: env.AWS_SESSION_TOKEN,
