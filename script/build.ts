@@ -74,8 +74,8 @@ async function buildAll() {
       "process.env.VERCEL": '"1"',
     },
     minify: true,
-    // Bundle everything except pg (native module issues)
-    external: ["pg"],
+    // Bundle everything for serverless to avoid CJS/ESM interop issues
+    external: [],
     logLevel: "info",
   });
 }
