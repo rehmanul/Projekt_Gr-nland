@@ -14,7 +14,9 @@
   "dependencies": {
     "@google-cloud/storage": "^7.16.0",
     "@aws-sdk/client-s3": "^3.758.0",
+    "@aws-sdk/credential-provider-node": "^3.758.0",
     "@aws-sdk/lib-storage": "^3.758.0",
+    "@aws-sdk/rds-signer": "^3.758.0",
     "@aws-sdk/s3-request-presigner": "^3.758.0",
     "@hookform/resolvers": "^3.10.0",
     "@jridgewell/trace-mapping": "^0.3.25",

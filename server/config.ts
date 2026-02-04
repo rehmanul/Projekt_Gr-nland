@@ -5,8 +5,15 @@ const envSchema = z.object({
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
   HOST: z.string().optional(),
   PORT: z.string().optional(),
-  DATABASE_URL: z.string().min(1),
+  DATABASE_URL: z.string().optional(),
   DATABASE_SSL: z.string().optional(),
+  DATABASE_IAM_AUTH: z.string().optional(),
+  PGHOST: z.string().optional(),
+  PGPORT: z.string().optional(),
+  PGUSER: z.string().optional(),
+  PGPASSWORD: z.string().optional(),
+  PGDATABASE: z.string().optional(),
+  PGSSLMODE: z.string().optional(),
   BASE_URL: z.string().min(1),
   JWT_SECRET: z.string().min(32),
   JWT_EXPIRY_DAYS: z.string().optional(),
@@ -25,6 +32,7 @@ const envSchema = z.object({
   GCS_BUCKET: z.string().optional(),
   GCS_PREFIX: z.string().optional(),
   AWS_REGION: z.string().optional(),
+  AWS_DEFAULT_REGION: z.string().optional(),
   AWS_ACCESS_KEY_ID: z.string().optional(),
   AWS_SECRET_ACCESS_KEY: z.string().optional(),
   AWS_SESSION_TOKEN: z.string().optional(),
@@ -48,8 +56,15 @@ if (!parsed.success) {
 
 const env = parsed.data;
 const storageProvider = env.STORAGE_PROVIDER ?? "gcs";
+const databaseIamAuth = env.DATABASE_IAM_AUTH === "true";
+const pgHost = env.PGHOST;
+const pgPort = env.PGPORT ? parseInt(env.PGPORT, 10) : 5432;
+const pgUser = env.PGUSER;
+const pgPassword = env.PGPASSWORD;
+const pgDatabase = env.PGDATABASE;
 const smtpAuthMode = env.SMTP_AUTH_MODE ?? "login";
 const gcpProjectId = env.GCP_PROJECT_ID ?? env.GOOGLE_CLOUD_PROJECT;
+const resolvedAwsRegion = env.AWS_REGION ?? env.AWS_DEFAULT_REGION ?? "";
 
 if (smtpAuthMode === "login") {
   if (!env.SMTP_USER || !env.SMTP_PASS) {
@@ -67,12 +82,28 @@ if (storageProvider === "gcs") {
 }
 
 if (storageProvider === "s3") {
-  if (!env.AWS_REGION || !env.AWS_ACCESS_KEY_ID || !env.AWS_SECRET_ACCESS_KEY) {
-    throw new Error("AWS_REGION, AWS_ACCESS_KEY_ID, and AWS_SECRET_ACCESS_KEY are required for S3 storage");
+  if (!resolvedAwsRegion || !env.AWS_ACCESS_KEY_ID || !env.AWS_SECRET_ACCESS_KEY) {
+    throw new Error("AWS_REGION (or AWS_DEFAULT_REGION), AWS_ACCESS_KEY_ID, and AWS_SECRET_ACCESS_KEY are required for S3 storage");
   }
   if (!env.S3_BUCKET) {
     throw new Error("S3_BUCKET is required for S3 storage");
   }
+}
+
+const resolvedDbSsl =
+  env.DATABASE_SSL === "true" || env.PGSSLMODE === "require" || env.PGSSLMODE === "verify-full";
+
+if (!env.DATABASE_URL) {
+  if (!pgHost || !pgUser || !pgDatabase) {
+    throw new Error("DATABASE_URL or PGHOST/PGUSER/PGDATABASE must be provided");
+  }
+  if (!databaseIamAuth && !pgPassword) {
+    throw new Error("PGPASSWORD is required unless DATABASE_IAM_AUTH=true");
+  }
+}
+
+if (databaseIamAuth && !resolvedAwsRegion) {
+  throw new Error("AWS_REGION or AWS_DEFAULT_REGION is required for DATABASE_IAM_AUTH");
 }
 
 let gcpCredentials: Record<string, unknown> | undefined;
@@ -88,8 +119,17 @@ export const config = {
   nodeEnv: env.NODE_ENV,
   host: env.HOST,
   port: env.PORT ? parseInt(env.PORT, 10) : 5000,
-  databaseUrl: env.DATABASE_URL,
-  databaseSsl: env.DATABASE_SSL === "true",
+  databaseUrl: env.DATABASE_URL ?? "",
+  databaseSsl: resolvedDbSsl,
+  database: {
+    host: pgHost ?? "",
+    port: pgPort,
+    user: pgUser ?? "",
+    password: pgPassword ?? "",
+    name: pgDatabase ?? "",
+    sslMode: env.PGSSLMODE ?? "",
+    iamAuth: databaseIamAuth,
+  },
   baseUrl: env.BASE_URL,
   jwtSecret: env.JWT_SECRET,
   jwtExpiryDays: env.JWT_EXPIRY_DAYS ? parseInt(env.JWT_EXPIRY_DAYS, 10) : 7,
@@ -119,7 +159,7 @@ export const config = {
     prefix: env.GCS_PREFIX ?? "",
   },
   aws: {
-    region: env.AWS_REGION ?? "",
+    region: resolvedAwsRegion,
     accessKeyId: env.AWS_ACCESS_KEY_ID ?? "",
     secretAccessKey: env.AWS_SECRET_ACCESS_KEY ?? "",
     sessionToken: env.AWS_SESSION_TOKEN,

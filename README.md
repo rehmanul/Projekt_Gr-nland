@@ -117,6 +117,16 @@ Ensure the Vercel project env vars include:
 - `ADMIN_API_KEY` (strong random secret)
 - `TENANT_DOMAIN_OVERRIDE=projekt-gr-nland.vercel.app` (optional if host headers match)
 
+### Using AWS RDS IAM auth (Vercel-managed Aurora)
+
+If your Vercel project provides `PGHOST`, `PGUSER`, `PGDATABASE` and an IAM role (no password), set:
+
+- `DATABASE_IAM_AUTH=true`
+- `PGHOST`, `PGPORT`, `PGUSER`, `PGDATABASE`, `PGSSLMODE=require`
+- `AWS_REGION` (or `AWS_DEFAULT_REGION`)
+
+The app will generate RDS IAM auth tokens on each connection. Do not set `PGPASSWORD` in this mode.
+
 ## Google Cloud deployment
 
 Production deployment on Google Cloud (Cloud Run + Cloud SQL + GCS + Google Workspace SMTP relay) is supported. See `DEPLOY_GCP.md` for a full, production-grade setup checklist and deployment steps.
