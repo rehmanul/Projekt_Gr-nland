@@ -7,8 +7,8 @@ import type { Request, Response } from "express";
 
 let appPromise: Promise<any> | null = null;
 
-// Vercel expects module.exports for the handler
-module.exports = async function handler(req: Request, res: Response) {
+// ESM default export for Vercel handler
+export default async function handler(req: Request, res: Response) {
   try {
     if (!appPromise) {
       const { createApp } = await import("./index");
@@ -23,4 +23,4 @@ module.exports = async function handler(req: Request, res: Response) {
       type: "SERVERLESS_INIT_ERROR",
     });
   }
-};
+}
