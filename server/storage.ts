@@ -241,7 +241,14 @@ export async function initStorage(): Promise<IStorage> {
   const pool = getPool();
   const poolQuery = (pool as typeof pool | undefined)?.query;
   if (typeof poolQuery !== "function") {
-    throw new Error("Database pool is not initialized");
+    const poolType = pool ? typeof pool : "undefined";
+    const poolName = pool && typeof pool === "object" && "constructor" in pool
+      ? (pool as any).constructor?.name ?? "unknown"
+      : "unknown";
+    const poolKeys = pool && typeof pool === "object" ? Object.keys(pool as object).slice(0, 10) : [];
+    throw new Error(
+      `Database pool is not initialized (type=${poolType}, ctor=${poolName}, keys=${poolKeys.join(",")})`,
+    );
   }
   await poolQuery.call(pool, "SELECT 1");
   return new DatabaseStorage();
