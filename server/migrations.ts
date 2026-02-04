@@ -192,4 +192,24 @@ ALTER TABLE "campaign_notifications" ADD CONSTRAINT "campaign_notifications_camp
 CREATE INDEX "idx_campaign_notifications_campaign" ON "campaign_notifications" USING btree ("campaign_id");--> statement-breakpoint
 CREATE INDEX "idx_campaign_notifications_status" ON "campaign_notifications" USING btree ("status");`,
   },
+  {
+    filename: "0002_fix_schema.sql",
+    sql: `ALTER TABLE "magic_links" ADD COLUMN IF NOT EXISTS "tenant_id" integer;
+UPDATE "magic_links" SET "tenant_id" = (SELECT id FROM "tenants" LIMIT 1) WHERE "tenant_id" IS NULL;
+ALTER TABLE "magic_links" ALTER COLUMN "tenant_id" SET NOT NULL;
+ALTER TABLE "magic_links" ADD CONSTRAINT "magic_links_tenant_id_tenants_id_fk" FOREIGN KEY ("tenant_id") REFERENCES "public"."tenants"("id") ON DELETE no action ON UPDATE no action;
+CREATE INDEX IF NOT EXISTS "idx_magic_links_tenant" ON "magic_links" USING btree ("tenant_id");
+--> statement-breakpoint
+ALTER TABLE "campaign_notifications" ADD COLUMN IF NOT EXISTS "recipient_email" varchar(255);
+ALTER TABLE "campaign_notifications" ADD COLUMN IF NOT EXISTS "type" varchar(100);
+ALTER TABLE "campaign_notifications" ADD COLUMN IF NOT EXISTS "error" text;
+UPDATE "campaign_notifications" SET "recipient_email" = "recipient_email" WHERE "recipient_email" IS NULL;
+UPDATE "campaign_notifications" SET "type" = "notification_type" WHERE "type" IS NULL;
+UPDATE "campaign_notifications" SET "error" = "error_message" WHERE "error" IS NULL;
+ALTER TABLE "campaign_notifications" ALTER COLUMN "recipient_email" SET NOT NULL;
+ALTER TABLE "campaign_notifications" ALTER COLUMN "type" SET NOT NULL;
+CREATE INDEX IF NOT EXISTS "idx_campaign_notifications_recipient" ON "campaign_notifications" USING btree ("recipient_email");
+CREATE INDEX IF NOT EXISTS "idx_campaign_notifications_type" ON "campaign_notifications" USING btree ("type");
+CREATE UNIQUE INDEX IF NOT EXISTS "uniq_campaign_notifications" ON "campaign_notifications" ("campaign_id","type","recipient_email");`,
+  },
 ];
