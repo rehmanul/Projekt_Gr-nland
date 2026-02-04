@@ -144,7 +144,7 @@ router.post("/admin/bootstrap", async (req: Request, res: Response) => {
       return res.status(400).json({ message: err.errors[0].message });
     }
     console.error("Admin bootstrap error:", err);
-    res.status(500).json({ message: "Failed to bootstrap tenant" });
+    res.status(500).json({ message: "Failed to bootstrap tenant", error: (err as Error)?.message ?? "Unknown error" });
   }
 });
 
@@ -225,7 +225,7 @@ router.post("/admin/employers", async (req: Request, res: Response) => {
       return res.status(400).json({ message: err.errors[0].message });
     }
     console.error("Create employer error:", err);
-    res.status(500).json({ message: "Failed to create employer" });
+    res.status(500).json({ message: "Failed to create employer", error: (err as Error)?.message ?? "Unknown error" });
   }
 });
 
@@ -269,7 +269,7 @@ router.post("/admin/cs-users", async (req: Request, res: Response) => {
       return res.status(400).json({ message: err.errors[0].message });
     }
     console.error("Create CS user error:", err);
-    res.status(500).json({ message: "Failed to create CS user" });
+    res.status(500).json({ message: "Failed to create CS user", error: (err as Error)?.message ?? "Unknown error" });
   }
 });
 
