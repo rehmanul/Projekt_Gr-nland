@@ -238,7 +238,11 @@ export class DatabaseStorage implements IStorage {
 }
 
 export async function initStorage(): Promise<IStorage> {
-  await pool.query("SELECT 1");
+  const poolQuery = (pool as typeof pool | undefined)?.query;
+  if (typeof poolQuery !== "function") {
+    throw new Error("Database pool is not initialized");
+  }
+  await poolQuery.call(pool, "SELECT 1");
   return new DatabaseStorage();
 }
 
