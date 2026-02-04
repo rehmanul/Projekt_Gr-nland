@@ -8,6 +8,7 @@ import { tenants, users, employers } from "@shared/schema";
 import { readFile, readdir } from "fs/promises";
 import path from "path";
 import { migrations as embeddedMigrations } from "./migrations";
+import { sendTestEmail } from "./email";
 
 const router = Router();
 
@@ -341,6 +342,25 @@ router.post("/admin/migrate", async (req: Request, res: Response) => {
   } catch (err) {
     console.error("Migration error:", err);
     res.status(500).json({ message: "Failed to run migrations", error: (err as Error)?.message ?? "Unknown error" });
+  }
+});
+
+router.post("/admin/test-email", async (req: Request, res: Response) => {
+  try {
+    if (!requireAdmin(req, res)) return;
+    const schema = z.object({
+      to: z.string().email(),
+      subject: z.string().optional(),
+    });
+    const input = schema.parse(req.body);
+    await sendTestEmail(input.to, input.subject ?? "Test Email");
+    res.json({ message: "Email sent" });
+  } catch (err) {
+    if (err instanceof z.ZodError) {
+      return res.status(400).json({ message: err.errors[0].message });
+    }
+    console.error("Test email error:", err);
+    res.status(500).json({ message: "Failed to send email", error: (err as Error)?.message ?? "Unknown error" });
   }
 });
 

@@ -46,6 +46,14 @@ async function sendEmail(params: EmailParams): Promise<void> {
     });
 }
 
+export async function sendTestEmail(to: string, subject = "Test Email"): Promise<void> {
+    await sendEmail({
+        to,
+        subject,
+        html: `<p>This is a test email from Projekt Gronland.</p>`,
+    });
+}
+
 // === CAMPAIGN NOTIFICATION EMAILS ===
 
 export async function sendMagicLinkEmail(
