@@ -22,9 +22,16 @@ const poolConfig = config.databaseUrl
       password: config.database.iamAuth ? () => getRdsIamToken() : config.database.password,
     };
 
-const pool = new Pool(poolConfig);
-attachDatabasePool(pool);
+let poolInstance: InstanceType<typeof Pool> | null = null;
 
-const db = drizzle(pool, { schema });
+function getPool(): InstanceType<typeof Pool> {
+  if (!poolInstance) {
+    poolInstance = new Pool(poolConfig);
+    attachDatabasePool(poolInstance);
+  }
+  return poolInstance;
+}
 
-export { pool, db };
+const db = drizzle(getPool(), { schema });
+
+export { getPool, db };

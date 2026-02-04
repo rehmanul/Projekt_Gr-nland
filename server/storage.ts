@@ -6,7 +6,7 @@ import {
   type Job, type InsertJob,
   type Application, type InsertApplication
 } from "@shared/schema";
-import { db, pool } from "./db";
+import { db, getPool } from "./db";
 import { eq, ilike, and, or, sql, gte, lte, inArray } from "drizzle-orm";
 
 export interface IStorage {
@@ -238,6 +238,7 @@ export class DatabaseStorage implements IStorage {
 }
 
 export async function initStorage(): Promise<IStorage> {
+  const pool = getPool();
   const poolQuery = (pool as typeof pool | undefined)?.query;
   if (typeof poolQuery !== "function") {
     throw new Error("Database pool is not initialized");
