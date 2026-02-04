@@ -154,6 +154,14 @@ const createEmployerSchema = z.object({
   employer: employerSchema,
 });
 
+const createCsUserSchema = z.object({
+  tenantDomain: z.string().min(1),
+  email: z.string().email(),
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
+  role: z.enum(["cs", "admin"]).optional(),
+});
+
 router.post("/admin/employers", async (req: Request, res: Response) => {
   try {
     if (!requireAdmin(req, res)) return;
@@ -218,6 +226,50 @@ router.post("/admin/employers", async (req: Request, res: Response) => {
     }
     console.error("Create employer error:", err);
     res.status(500).json({ message: "Failed to create employer" });
+  }
+});
+
+router.post("/admin/cs-users", async (req: Request, res: Response) => {
+  try {
+    if (!requireAdmin(req, res)) return;
+    const input = createCsUserSchema.parse(req.body);
+    const domain = input.tenantDomain.trim().toLowerCase();
+
+    const [tenant] = await db.select().from(tenants).where(eq(tenants.domain, domain));
+    if (!tenant) {
+      return res.status(404).json({ message: "Tenant not found for domain" });
+    }
+
+    const [existingUser] = await db
+      .select()
+      .from(users)
+      .where(and(eq(users.tenantId, tenant.id), eq(users.email, input.email)));
+
+    if (existingUser) {
+      return res.status(409).json({ message: "User already exists for tenant" });
+    }
+
+    const passwordHash = crypto.randomBytes(32).toString("hex");
+    const [user] = await db
+      .insert(users)
+      .values({
+        tenantId: tenant.id,
+        email: input.email,
+        passwordHash,
+        role: input.role ?? "cs",
+        firstName: input.firstName ?? null,
+        lastName: input.lastName ?? null,
+        isActive: true,
+      })
+      .returning();
+
+    res.status(201).json({ user, tenant });
+  } catch (err) {
+    if (err instanceof z.ZodError) {
+      return res.status(400).json({ message: err.errors[0].message });
+    }
+    console.error("Create CS user error:", err);
+    res.status(500).json({ message: "Failed to create CS user" });
   }
 });
 
