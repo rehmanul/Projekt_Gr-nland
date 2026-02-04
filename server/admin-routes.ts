@@ -9,6 +9,8 @@ import { readFile, readdir } from "fs/promises";
 import path from "path";
 import { migrations as embeddedMigrations } from "./migrations";
 import { sendTestEmail } from "./email";
+import { createMagicLink, buildMagicLinkUrl } from "./auth";
+import * as campaignStorage from "./campaign-storage";
 
 const router = Router();
 
@@ -361,6 +363,64 @@ router.post("/admin/test-email", async (req: Request, res: Response) => {
     }
     console.error("Test email error:", err);
     res.status(500).json({ message: "Failed to send email", error: (err as Error)?.message ?? "Unknown error" });
+  }
+});
+
+router.post("/admin/request-magic-link", async (req: Request, res: Response) => {
+  try {
+    if (!requireAdmin(req, res)) return;
+    const schema = z.object({
+      tenantDomain: z.string().min(1),
+      email: z.string().email(),
+      portalType: z.enum(["cs", "customer", "agency"]),
+      campaignId: z.coerce.number().optional(),
+    });
+    const input = schema.parse(req.body);
+    const domain = input.tenantDomain.trim().toLowerCase();
+
+    const [tenant] = await db.select().from(tenants).where(eq(tenants.domain, domain));
+    if (!tenant) {
+      return res.status(404).json({ message: "Tenant not found for domain" });
+    }
+
+    let resolvedCampaignId = input.campaignId;
+    let eligible = false;
+
+    if (input.portalType === "cs") {
+      const csUser = await campaignStorage.getCsUserByEmail(tenant.id, input.email);
+      eligible = !!csUser && csUser.isActive;
+    } else if (input.portalType === "agency") {
+      const agency = await campaignStorage.getAgencyByEmail(tenant.id, input.email);
+      eligible = !!agency && agency.isActive;
+    } else {
+      if (resolvedCampaignId) {
+        const campaign = await campaignStorage.getCampaign(tenant.id, resolvedCampaignId);
+        eligible = !!campaign && campaign.customerEmail === input.email;
+      } else {
+        const campaigns = await campaignStorage.getCampaignByCustomerEmail(tenant.id, input.email);
+        if (campaigns.length > 0) {
+          eligible = true;
+          resolvedCampaignId = campaigns[0].id;
+        }
+      }
+    }
+
+    if (!eligible) {
+      return res.status(400).json({ message: "User is not eligible for magic link" });
+    }
+
+    const token = await createMagicLink(tenant.id, input.email, input.portalType, resolvedCampaignId);
+    const loginUrl = buildMagicLinkUrl(config.baseUrl, token, input.portalType, resolvedCampaignId);
+
+    await sendTestEmail(input.email, `Magic link test (${input.portalType})`);
+
+    res.json({ message: "Magic link created", token, loginUrl });
+  } catch (err) {
+    if (err instanceof z.ZodError) {
+      return res.status(400).json({ message: err.errors[0].message });
+    }
+    console.error("Admin magic link error:", err);
+    res.status(500).json({ message: "Failed to create magic link", error: (err as Error)?.message ?? "Unknown error" });
   }
 });
 
