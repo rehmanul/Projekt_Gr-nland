@@ -7,6 +7,7 @@ import { config } from "./config";
 import { tenants, users, employers } from "@shared/schema";
 import { readFile, readdir } from "fs/promises";
 import path from "path";
+import { migrations as embeddedMigrations } from "./migrations";
 
 const router = Router();
 
@@ -290,11 +291,17 @@ router.post("/admin/migrate", async (req: Request, res: Response) => {
 
     let migrationsDir = path.resolve(process.cwd(), "migrations");
     let files: string[] = [];
+    let useEmbedded = false;
     try {
       files = (await readdir(migrationsDir)).filter((file) => file.endsWith(".sql")).sort();
     } catch (err) {
-      migrationsDir = path.resolve(process.cwd(), "dist", "migrations");
-      files = (await readdir(migrationsDir)).filter((file) => file.endsWith(".sql")).sort();
+      try {
+        migrationsDir = path.resolve(process.cwd(), "dist", "migrations");
+        files = (await readdir(migrationsDir)).filter((file) => file.endsWith(".sql")).sort();
+      } catch (err2) {
+        useEmbedded = true;
+        files = embeddedMigrations.map((m) => m.filename);
+      }
     }
 
     const appliedRows = await pool.query("SELECT filename FROM app_migrations");
@@ -304,7 +311,12 @@ router.post("/admin/migrate", async (req: Request, res: Response) => {
 
     for (const file of files) {
       if (applied.has(file)) continue;
-      const sql = await readFile(path.join(migrationsDir, file), "utf8");
+      const sql = useEmbedded
+        ? embeddedMigrations.find((m) => m.filename === file)?.sql ?? ""
+        : await readFile(path.join(migrationsDir, file), "utf8");
+      if (!sql) {
+        throw new Error(`Missing SQL for migration ${file}`);
+      }
       const statements = sql
         .split("--> statement-breakpoint")
         .map((stmt) => stmt.trim())
