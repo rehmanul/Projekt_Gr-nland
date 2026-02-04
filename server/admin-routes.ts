@@ -288,10 +288,14 @@ router.post("/admin/migrate", async (req: Request, res: Response) => {
       );
     `);
 
-    const migrationsDir = path.resolve(process.cwd(), "migrations");
-    const files = (await readdir(migrationsDir))
-      .filter((file) => file.endsWith(".sql"))
-      .sort();
+    let migrationsDir = path.resolve(process.cwd(), "migrations");
+    let files: string[] = [];
+    try {
+      files = (await readdir(migrationsDir)).filter((file) => file.endsWith(".sql")).sort();
+    } catch (err) {
+      migrationsDir = path.resolve(process.cwd(), "dist", "migrations");
+      files = (await readdir(migrationsDir)).filter((file) => file.endsWith(".sql")).sort();
+    }
 
     const appliedRows = await pool.query("SELECT filename FROM app_migrations");
     const applied = new Set(appliedRows.rows.map((row: { filename: string }) => row.filename));

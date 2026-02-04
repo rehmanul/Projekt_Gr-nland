@@ -1,6 +1,6 @@
 import { build as esbuild } from "esbuild";
 import { build as viteBuild } from "vite";
-import { rm } from "fs/promises";
+import { rm, cp } from "fs/promises";
 
 async function buildAll() {
   await rm("dist", { recursive: true, force: true });
@@ -23,7 +23,8 @@ async function buildAll() {
     logLevel: "info",
   });
 
-  // Serverless entry is provided as a static CJS file in api/index.cjs
+  // Ensure migrations are available in serverless bundle
+  await cp("migrations", "dist/migrations", { recursive: true });
 }
 
 buildAll().catch((err) => {
