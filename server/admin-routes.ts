@@ -2,9 +2,11 @@ import { Router, Request, Response } from "express";
 import { z } from "zod";
 import crypto from "crypto";
 import { and, eq } from "drizzle-orm";
-import { db } from "./db";
+import { db, getPool } from "./db";
 import { config } from "./config";
 import { tenants, users, employers } from "@shared/schema";
+import { readFile, readdir } from "fs/promises";
+import path from "path";
 
 const router = Router();
 
@@ -270,6 +272,59 @@ router.post("/admin/cs-users", async (req: Request, res: Response) => {
     }
     console.error("Create CS user error:", err);
     res.status(500).json({ message: "Failed to create CS user", error: (err as Error)?.message ?? "Unknown error" });
+  }
+});
+
+router.post("/admin/migrate", async (req: Request, res: Response) => {
+  try {
+    if (!requireAdmin(req, res)) return;
+    const pool = getPool();
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS app_migrations (
+        id serial PRIMARY KEY,
+        filename varchar(255) UNIQUE NOT NULL,
+        applied_at timestamp DEFAULT now() NOT NULL
+      );
+    `);
+
+    const migrationsDir = path.resolve(process.cwd(), "migrations");
+    const files = (await readdir(migrationsDir))
+      .filter((file) => file.endsWith(".sql"))
+      .sort();
+
+    const appliedRows = await pool.query("SELECT filename FROM app_migrations");
+    const applied = new Set(appliedRows.rows.map((row: { filename: string }) => row.filename));
+
+    const executed: string[] = [];
+
+    for (const file of files) {
+      if (applied.has(file)) continue;
+      const sql = await readFile(path.join(migrationsDir, file), "utf8");
+      const statements = sql
+        .split("--> statement-breakpoint")
+        .map((stmt) => stmt.trim())
+        .filter(Boolean);
+
+      await pool.query("BEGIN");
+      try {
+        for (const stmt of statements) {
+          await pool.query(stmt);
+        }
+        await pool.query("INSERT INTO app_migrations (filename) VALUES ($1)", [file]);
+        await pool.query("COMMIT");
+      } catch (err) {
+        await pool.query("ROLLBACK");
+        throw err;
+      }
+
+      executed.push(file);
+    }
+
+    res.json({ executed, total: files.length });
+  } catch (err) {
+    console.error("Migration error:", err);
+    res.status(500).json({ message: "Failed to run migrations", error: (err as Error)?.message ?? "Unknown error" });
   }
 });
 
