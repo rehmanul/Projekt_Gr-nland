@@ -1,17 +1,16 @@
 import * as schema from "@shared/schema";
-import { createRequire } from "module";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { attachDatabasePool } from "@vercel/functions";
 import { config } from "./config";
 import { getRdsIamToken } from "./rds-iam";
 
-const require = createRequire(import.meta.url);
-const { Pool } = require("pg");
+import pg from "pg";
+
+const { Pool } = pg;
 
 if (typeof Pool !== "function") {
   throw new Error("Pg Pool constructor unavailable");
 }
-
 const sslConfig = config.databaseSsl ? { rejectUnauthorized: false } : undefined;
 const poolConfig = config.databaseUrl
   ? {
