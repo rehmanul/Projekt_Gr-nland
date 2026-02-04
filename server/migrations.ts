@@ -212,4 +212,12 @@ CREATE INDEX IF NOT EXISTS "idx_campaign_notifications_recipient" ON "campaign_n
 CREATE INDEX IF NOT EXISTS "idx_campaign_notifications_type" ON "campaign_notifications" USING btree ("type");
 CREATE UNIQUE INDEX IF NOT EXISTS "uniq_campaign_notifications" ON "campaign_notifications" ("campaign_id","type","recipient_email");`,
   },
+  {
+    filename: "0003_jobs_metadata.sql",
+    sql: `ALTER TABLE "jobs" ADD COLUMN IF NOT EXISTS "remote_type" varchar(20) DEFAULT 'on-site' NOT NULL;
+ALTER TABLE "jobs" ADD COLUMN IF NOT EXISTS "experience_level" varchar(20) DEFAULT 'mid' NOT NULL;
+ALTER TABLE "jobs" ADD COLUMN IF NOT EXISTS "category" varchar(100);
+UPDATE "jobs" SET "remote_type" = 'on-site' WHERE "remote_type" IS NULL;
+UPDATE "jobs" SET "experience_level" = 'mid' WHERE "experience_level" IS NULL;`,
+  },
 ];
