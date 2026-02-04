@@ -34,8 +34,13 @@ let poolInstance: InstanceType<typeof Pool> | null = null;
 
 function getPool(): InstanceType<typeof Pool> {
   if (!poolInstance) {
-    poolInstance = new Pool(poolConfig);
-    attachDatabasePool(poolInstance);
+    try {
+      poolInstance = new Pool(poolConfig);
+      attachDatabasePool(poolInstance);
+    } catch (error: any) {
+      const message = error?.message ?? "Unknown pool init error";
+      throw new Error(`Pool init failed: ${message}`);
+    }
   }
   return poolInstance;
 }
