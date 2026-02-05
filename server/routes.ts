@@ -44,6 +44,11 @@ export async function registerRoutes(
   app.use("/api", campaignRoutes);
 
   // === API ROUTES ===
+  app.get("/api/stats", async (req, res) => {
+    const tenant = (req as any).tenant as Tenant;
+    const stats = await storage.getStats(tenant.id);
+    res.json(stats);
+  });
 
   // Jobs
   app.get(api.jobs.list.path, async (req, res) => {

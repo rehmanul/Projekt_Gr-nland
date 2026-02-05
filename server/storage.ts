@@ -36,6 +36,9 @@ export interface IStorage {
 
   // Application
   createApplication(application: InsertApplication): Promise<Application>;
+
+  // Stats
+  getStats(tenantId: number): Promise<{ jobs: number; employers: number; applications: number }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -234,6 +237,29 @@ export class DatabaseStorage implements IStorage {
   async createApplication(application: InsertApplication): Promise<Application> {
     const [newApp] = await db.insert(applications).values(application).returning();
     return newApp;
+  }
+
+  async getStats(tenantId: number): Promise<{ jobs: number; employers: number; applications: number }> {
+    const [jobsCount] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(jobs)
+      .where(and(eq(jobs.tenantId, tenantId), eq(jobs.isActive, true)));
+
+    const [employersCount] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(employers)
+      .where(and(eq(employers.tenantId, tenantId), eq(employers.isActive, true)));
+
+    const [applicationsCount] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(applications)
+      .where(eq(applications.tenantId, tenantId));
+
+    return {
+      jobs: Number(jobsCount?.count ?? 0),
+      employers: Number(employersCount?.count ?? 0),
+      applications: Number(applicationsCount?.count ?? 0),
+    };
   }
 }
 
