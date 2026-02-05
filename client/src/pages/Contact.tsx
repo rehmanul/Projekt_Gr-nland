@@ -18,7 +18,7 @@ export default function Contact() {
     setSubmitted(true);
     toast({
       title: "Message sent",
-      description: "We'll get back to you within 1–2 business days.",
+      description: "We'll get back to you within 1-2 business days.",
     });
   };
 
@@ -35,7 +35,7 @@ export default function Contact() {
             <div className="flex items-start gap-4">
               <MapPin className="w-6 h-6 text-primary shrink-0 mt-1" />
               <div>
-                <h3 className="font-semibold text-slate-900 mb-1">Address</h3>
+                <h2 className="font-semibold text-slate-900 mb-1 text-base">Address</h2>
                 <p className="text-slate-600">Karlsruhe, Germany</p>
               </div>
             </div>
@@ -44,7 +44,7 @@ export default function Contact() {
             <div className="flex items-start gap-4">
               <Mail className="w-6 h-6 text-primary shrink-0 mt-1" />
               <div>
-                <h3 className="font-semibold text-slate-900 mb-1">Email</h3>
+                <h2 className="font-semibold text-slate-900 mb-1 text-base">Email</h2>
                 <p className="text-slate-600">support@{tenant?.domain?.replace("www.", "") || "example.com"}</p>
               </div>
             </div>

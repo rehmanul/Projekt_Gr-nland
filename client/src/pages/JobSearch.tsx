@@ -132,7 +132,7 @@ export default function JobSearch() {
                 value={basicFilters.employmentType}
                 onValueChange={(val) => setBasicFilters(prev => ({ ...prev, employmentType: val }))}
               >
-                <SelectTrigger className="input-glass">
+                <SelectTrigger className="input-glass" aria-label="Employment type">
                   <Briefcase className="w-4 h-4 mr-2 text-slate-400" />
                   <SelectValue placeholder="Job Type" />
                 </SelectTrigger>
@@ -186,7 +186,7 @@ export default function JobSearch() {
           </div>
         ) : error ? (
           <div className="text-center py-20">
-            <h3 className="text-xl font-bold text-slate-900">Something went wrong</h3>
+            <h2 className="text-xl font-bold text-slate-900">Something went wrong</h2>
             <p className="text-slate-500 mt-2">Failed to load jobs. Please try again later.</p>
           </div>
         ) : jobs?.length === 0 ? (
@@ -194,7 +194,7 @@ export default function JobSearch() {
             <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Search className="w-8 h-8 text-slate-400" />
             </div>
-            <h3 className="text-lg font-bold text-slate-900">No jobs found</h3>
+            <h2 className="text-lg font-bold text-slate-900">No jobs found</h2>
             <p className="text-slate-500 mt-2">Try adjusting your search or filters to find what you're looking for.</p>
             <Button
               variant="ghost"

@@ -302,7 +302,7 @@ export default function CSCampaignDetail() {
                                         {activity.action.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                                     </p>
                                     <p className="text-sm text-slate-500">
-                                        {activity.actorType} · {new Date(activity.createdAt).toLocaleString()}
+                                        {activity.actorType} - {new Date(activity.createdAt).toLocaleString()}
                                     </p>
                                 </div>
                             </div>

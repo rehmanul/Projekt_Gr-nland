@@ -301,7 +301,9 @@ function SidebarRail({ className, ...props }: React.ComponentProps<"button">) {
         className
       )}
       {...props}
-    />
+    >
+      <span className="sr-only">Toggle Sidebar</span>
+    </button>
   )
 }
 

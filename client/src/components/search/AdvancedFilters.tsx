@@ -5,7 +5,6 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { motion, AnimatePresence } from 'framer-motion';
 
 export interface AdvancedFilters {
     salaryMin?: number;
@@ -150,10 +149,13 @@ export function AdvancedFiltersPanel({ filters, onChange, onClear }: AdvancedFil
     };
 
     return (
-        <div className="glass rounded-2xl border border-white/60 shadow-sm hover-glow overflow-hidden">
+        <div className="glass rounded-2xl border border-white/60 shadow-sm hover-glow overflow-hidden text-slate-700">
             <button
+                type="button"
                 onClick={() => setIsExpanded(!isExpanded)}
                 className="w-full flex items-center justify-between px-4 py-3 hover:bg-white/60 transition-colors"
+                aria-expanded={isExpanded}
+                aria-controls="advanced-filters-panel"
             >
                 <div className="flex items-center gap-2">
                     <span className="font-semibold text-slate-700">Advanced Filters</span>
@@ -184,6 +186,7 @@ export function AdvancedFiltersPanel({ filters, onChange, onClear }: AdvancedFil
                                     filter.onRemove();
                                 }}
                                 className="hover:text-red-500"
+                                aria-label={`Remove filter ${filter.label}`}
                             >
                                 <X className="w-3 h-3" />
                             </button>
@@ -195,16 +198,14 @@ export function AdvancedFiltersPanel({ filters, onChange, onClear }: AdvancedFil
                 </div>
             )}
 
-            <AnimatePresence>
-                {isExpanded && (
-                    <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="border-t border-white/60 bg-white/80"
-                    >
-                        <div className="p-4 space-y-6">
+            <div
+                id="advanced-filters-panel"
+                className={`grid transition-all duration-300 ease-out border-t border-white/60 bg-white text-slate-700 ${
+                    isExpanded ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0 pointer-events-none"
+                }`}
+            >
+                <div className="overflow-hidden">
+                    <div className="p-4 space-y-6">
                             <div className="space-y-3">
                                 <div className="flex items-center gap-2 text-sm font-medium text-slate-700">
                                     <DollarSign className="w-4 h-4" />
@@ -322,7 +323,7 @@ export function AdvancedFiltersPanel({ filters, onChange, onClear }: AdvancedFil
                                     value={filters.category || ''}
                                     onValueChange={(value) => onChange({ ...filters, category: value || undefined })}
                                 >
-                                    <SelectTrigger className="w-full md:w-64 input-glass">
+                                    <SelectTrigger className="w-full md:w-64 input-glass" aria-label="Industry">
                                         <SelectValue placeholder="All Industries" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -360,7 +361,7 @@ export function AdvancedFiltersPanel({ filters, onChange, onClear }: AdvancedFil
                                         value={filters.sortBy}
                                         onValueChange={(value) => onChange({ ...filters, sortBy: value })}
                                     >
-                                        <SelectTrigger className="w-40 input-glass">
+                                        <SelectTrigger className="w-40 input-glass" aria-label="Sort by">
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -379,6 +380,7 @@ export function AdvancedFiltersPanel({ filters, onChange, onClear }: AdvancedFil
                                             sortOrder: filters.sortOrder === 'asc' ? 'desc' : 'asc'
                                         })}
                                         className="text-slate-500 button-pop"
+                                        aria-label="Toggle sort order"
                                     >
                                         {filters.sortOrder === 'asc' ? 'Up' : 'Down'}
                                     </Button>
@@ -395,9 +397,9 @@ export function AdvancedFiltersPanel({ filters, onChange, onClear }: AdvancedFil
                                 </Button>
                             </div>
                         </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }

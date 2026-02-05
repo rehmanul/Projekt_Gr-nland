@@ -32,9 +32,9 @@ export default function Employers() {
                     <Building2 className="w-8 h-8 text-slate-300" />
                   )}
                 </div>
-                <h3 className="font-bold text-lg text-slate-900 group-hover:text-primary mb-1">
+                <h2 className="font-bold text-lg text-slate-900 group-hover:text-primary mb-1">
                   {employer.name}
-                </h3>
+                </h2>
                 <div className="flex items-center gap-1 text-sm text-slate-500 mb-4">
                   <MapPin className="w-3 h-3" />
                   {employer.location || "Multiple Locations"}

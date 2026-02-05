@@ -25,12 +25,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <header className="sticky top-0 z-50 w-full border-b border-white/40 bg-white/70 backdrop-blur-xl">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-8">
-            <Link href="/" className="flex items-center gap-2">
+            <Link href="/" className="flex items-center gap-2 shrink-0 min-w-[200px] whitespace-nowrap">
               <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-sky-500 flex items-center justify-center shadow-md">
                 <Briefcase className="w-5 h-5 text-white" />
               </div>
               <span className="text-xl font-bold font-display tracking-tight text-slate-900">
-                {tenant?.name || "Projekt GrÃ¶nland"}
+                {tenant?.name || "Projekt Gronland"}
               </span>
             </Link>
 
@@ -58,8 +58,15 @@ export function Layout({ children }: { children: React.ReactNode }) {
             
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden" aria-label="Open menu">
+                <Button
+                  id="open-side-panel"
+                  variant="ghost"
+                  size="icon"
+                  className="md:hidden"
+                  aria-label="Open menu"
+                >
                   <Menu className="w-6 h-6" />
+                  <span className="sr-only">Open menu</span>
                 </Button>
               </SheetTrigger>
               <SheetContent>
@@ -94,7 +101,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   <Briefcase className="w-3 h-3 text-white" />
                 </div>
                 <span className="font-bold font-display text-slate-900">
-                  {tenant?.name || "Projekt GrÃ¶nland"}
+                  {tenant?.name || "Projekt Gronland"}
                 </span>
               </div>
               <p className="text-sm text-slate-500 leading-relaxed">
@@ -103,7 +110,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             </div>
             
             <div>
-              <h4 className="font-semibold mb-4">For Candidates</h4>
+              <h2 className="font-semibold mb-4 text-base">For Candidates</h2>
               <ul className="space-y-2 text-sm text-slate-500">
                 <li><Link href="/jobs" className="hover:text-primary">Browse Jobs</Link></li>
                 <li><Link href="/companies" className="hover:text-primary">Browse Companies</Link></li>
@@ -112,7 +119,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             </div>
 
             <div>
-              <h4 className="font-semibold mb-4">For Employers</h4>
+              <h2 className="font-semibold mb-4 text-base">For Employers</h2>
               <ul className="space-y-2 text-sm text-slate-500">
                 <li><Link href="/post-job" className="hover:text-primary">Post a Job</Link></li>
                 <li><Link href="/pricing" className="hover:text-primary">Pricing</Link></li>
@@ -121,7 +128,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             </div>
 
             <div>
-              <h4 className="font-semibold mb-4">Legal & Contact</h4>
+              <h2 className="font-semibold mb-4 text-base">Legal & Contact</h2>
               <ul className="space-y-2 text-sm text-slate-500">
                 <li><Link href="/contact" className="hover:text-primary">Contact</Link></li>
                 <li><Link href="/imprint" className="hover:text-primary">Impressum</Link></li>
@@ -131,7 +138,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             </div>
           </div>
           <div className="border-t pt-8 text-center text-sm text-slate-400">
-            (c) {new Date().getFullYear()} {tenant?.name || "Projekt GrÃ¶nland"}. All rights reserved.
+            (c) {new Date().getFullYear()} {tenant?.name || "Projekt Gronland"}. All rights reserved.
           </div>
         </div>
       </footer>

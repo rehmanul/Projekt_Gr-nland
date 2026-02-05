@@ -38,9 +38,9 @@ export function JobCard({ job, featured = false }: JobCardProps) {
                     )}
                   </div>
                   <div>
-                    <h3 className="font-display font-bold text-lg text-slate-900 line-clamp-1">
-                      {job.title}
-                    </h3>
+                <h2 className="font-display font-bold text-lg text-slate-900 line-clamp-1">
+                  {job.title}
+                </h2>
                     <p className="text-sm text-slate-500 font-medium">
                       {job.employer?.name || "Confidential Employer"}
                     </p>

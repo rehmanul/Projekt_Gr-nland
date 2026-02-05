@@ -69,7 +69,7 @@ export default function PostJob() {
               <Select
                 onValueChange={(val) => form.setValue("employerId", parseInt(val))}
               >
-                <SelectTrigger>
+                <SelectTrigger aria-label="Employer">
                   <SelectValue placeholder="Select Employer" />
                 </SelectTrigger>
                 <SelectContent>
@@ -98,7 +98,7 @@ export default function PostJob() {
                   defaultValue="full-time"
                   onValueChange={(val) => form.setValue("employmentType", val)}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger aria-label="Employment type">
                     <SelectValue placeholder="Select Type" />
                   </SelectTrigger>
                   <SelectContent>
