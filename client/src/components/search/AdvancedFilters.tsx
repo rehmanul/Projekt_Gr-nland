@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export interface AdvancedFilters {
     salaryMin?: number;
@@ -198,14 +199,17 @@ export function AdvancedFiltersPanel({ filters, onChange, onClear }: AdvancedFil
                 </div>
             )}
 
-            <div
-                id="advanced-filters-panel"
-                className={`grid transition-all duration-300 ease-out border-t border-white/60 bg-white text-slate-700 ${
-                    isExpanded ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0 pointer-events-none"
-                }`}
-            >
-                <div className="overflow-hidden">
-                    <div className="p-4 space-y-6">
+            <AnimatePresence>
+                {isExpanded && (
+                    <motion.div
+                        id="advanced-filters-panel"
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="border-t border-white/60 bg-white text-slate-700"
+                    >
+                        <div className="p-4 space-y-6">
                             <div className="space-y-3">
                                 <div className="flex items-center gap-2 text-sm font-medium text-slate-700">
                                     <DollarSign className="w-4 h-4" />
@@ -397,9 +401,9 @@ export function AdvancedFiltersPanel({ filters, onChange, onClear }: AdvancedFil
                                 </Button>
                             </div>
                         </div>
-                    </div>
-                </div>
-            </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
