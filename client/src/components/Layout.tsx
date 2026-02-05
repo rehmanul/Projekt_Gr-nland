@@ -30,7 +30,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 <Briefcase className="w-5 h-5 text-white" />
               </div>
               <span className="text-xl font-bold font-display tracking-tight text-slate-900">
-                {tenant?.name || "Projekt Grönland"}
+                {tenant?.name || "Projekt GrÃ¶nland"}
               </span>
             </Link>
 
@@ -58,7 +58,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden">
+                <Button variant="ghost" size="icon" className="md:hidden" aria-label="Open menu">
                   <Menu className="w-6 h-6" />
                 </Button>
               </SheetTrigger>
@@ -94,7 +94,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   <Briefcase className="w-3 h-3 text-white" />
                 </div>
                 <span className="font-bold font-display text-slate-900">
-                  {tenant?.name || "Projekt Grönland"}
+                  {tenant?.name || "Projekt GrÃ¶nland"}
                 </span>
               </div>
               <p className="text-sm text-slate-500 leading-relaxed">
@@ -131,7 +131,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             </div>
           </div>
           <div className="border-t pt-8 text-center text-sm text-slate-400">
-            (c) {new Date().getFullYear()} {tenant?.name || "Projekt Grönland"}. All rights reserved.
+            (c) {new Date().getFullYear()} {tenant?.name || "Projekt GrÃ¶nland"}. All rights reserved.
           </div>
         </div>
       </footer>

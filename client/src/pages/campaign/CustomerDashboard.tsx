@@ -104,7 +104,7 @@ export default function CustomerDashboard() {
                             <p className="text-xs text-slate-500">Track your campaign progress</p>
                         </div>
                     </div>
-                    <button onClick={handleLogout} className="p-2 text-slate-500 hover:text-slate-900">
+                    <button onClick={handleLogout} className="p-2 text-slate-500 hover:text-slate-900" aria-label="Log out">
                         <LogOut className="w-5 h-5" />
                     </button>
                 </div>

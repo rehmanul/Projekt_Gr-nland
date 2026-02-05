@@ -269,7 +269,7 @@ export default function CustomerPortal() {
                             All Campaigns
                         </Link>
                     </div>
-                    <button onClick={handleLogout} className="p-2 text-slate-500 hover:text-slate-900">
+                    <button onClick={handleLogout} className="p-2 text-slate-500 hover:text-slate-900" aria-label="Log out">
                         <XCircle className="w-5 h-5" />
                     </button>
                 </div>

@@ -240,7 +240,7 @@ export default function AgencyPortalCampaign() {
                         <Link to="/agency" className="text-primary hover:text-slate-900">All Campaigns</Link>
                         <button
                             onClick={handleLogout}
-                            className="p-2 text-slate-500 hover:text-slate-900"
+                            className="p-2 text-slate-500 hover:text-slate-900" aria-label="Log out"
                         >
                             <LogOut className="w-5 h-5" />
                         </button>

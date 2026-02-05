@@ -202,7 +202,7 @@ export function AdvancedFiltersPanel({ filters, onChange, onClear }: AdvancedFil
                         animate={{ height: 'auto', opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
                         transition={{ duration: 0.2 }}
-                        className="border-t border-white/60"
+                        className="border-t border-white/60 bg-white/80"
                     >
                         <div className="p-4 space-y-6">
                             <div className="space-y-3">

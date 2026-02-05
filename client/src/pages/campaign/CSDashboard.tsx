@@ -154,7 +154,7 @@ export default function CSDashboard() {
                             </div>
                         </div>
                         <div className="flex items-center gap-3">
-                            <button className="p-2 text-slate-500 hover:text-slate-900 relative">
+                            <button className="p-2 text-slate-500 hover:text-slate-900 relative" aria-label="Notifications">
                                 <Bell className="w-5 h-5" />
                                 {stats.overdue > 0 && (
                                     <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
@@ -162,7 +162,7 @@ export default function CSDashboard() {
                                     </span>
                                 )}
                             </button>
-                            <button onClick={handleLogout} className="p-2 text-slate-500 hover:text-slate-900">
+                            <button onClick={handleLogout} className="p-2 text-slate-500 hover:text-slate-900" aria-label="Log out">
                                 <LogOut className="w-5 h-5" />
                             </button>
                         </div>
