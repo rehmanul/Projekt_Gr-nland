@@ -1,14 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { useTenant } from "@/hooks/use-tenant";
 import { Button } from "@/components/ui/button";
-import { 
-  NavigationMenu, 
-  NavigationMenuItem, 
-  NavigationMenuLink, 
-  NavigationMenuList,
-  navigationMenuTriggerStyle
-} from "@/components/ui/navigation-menu";
-import { Menu, X, Briefcase, MapPin, Search } from "lucide-react";
+import { Menu, Briefcase } from "lucide-react";
 import { useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
@@ -25,12 +18,15 @@ export function Layout({ children }: { children: React.ReactNode }) {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 font-sans">
-      <header className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-md">
+    <div className="min-h-screen flex flex-col font-sans relative overflow-hidden aurora-bg">
+      <div className="pointer-events-none absolute -top-24 -left-24 h-72 w-72 rounded-full bg-primary/20 blur-3xl float-slow" />
+      <div className="pointer-events-none absolute top-32 -right-20 h-80 w-80 rounded-full bg-accent/20 blur-3xl float-fast" />
+
+      <header className="sticky top-0 z-50 w-full border-b border-white/40 bg-white/70 backdrop-blur-xl">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-8">
             <Link href="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-sky-500 flex items-center justify-center shadow-md">
                 <Briefcase className="w-5 h-5 text-white" />
               </div>
               <span className="text-xl font-bold font-display tracking-tight text-slate-900">
@@ -41,10 +37,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <nav className="hidden md:flex items-center gap-1">
               {navItems.map((item) => (
                 <Link key={item.href} href={item.href}>
-                  <a className={`text-sm font-medium px-4 py-2 rounded-md transition-colors ${
+                  <a className={`text-sm font-medium px-4 py-2 rounded-full transition-colors ${
                     location.startsWith(item.href) 
-                      ? "bg-primary/10 text-primary" 
-                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                      ? "bg-primary/15 text-primary" 
+                      : "text-slate-600 hover:text-slate-900 hover:bg-white/70"
                   }`}>
                     {item.label}
                   </a>
@@ -55,7 +51,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
           <div className="flex items-center gap-4">
             <Link href="/post-job">
-              <Button className="hidden md:flex font-semibold shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all">
+              <Button className="hidden md:flex font-semibold shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all bg-gradient-to-r from-primary via-sky-500 to-accent shine button-pop">
                 Post a Job
               </Button>
             </Link>
@@ -70,7 +66,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 <div className="flex flex-col gap-4 mt-8">
                   {navItems.map((item) => (
                     <Link key={item.href} href={item.href} onClick={() => setIsOpen(false)}>
-                      <a className="text-lg font-medium p-2 block hover:bg-slate-100 rounded-md">
+                      <a className="text-lg font-medium p-2 block hover:bg-white/70 rounded-md">
                         {item.label}
                       </a>
                     </Link>
@@ -89,12 +85,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
         {children}
       </main>
 
-      <footer className="bg-white border-t py-12">
+      <footer className="bg-white/80 border-t border-white/40 backdrop-blur-lg py-12">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
             <div className="space-y-4">
               <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded bg-primary flex items-center justify-center">
+                <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary to-sky-500 flex items-center justify-center shadow-sm">
                   <Briefcase className="w-3 h-3 text-white" />
                 </div>
                 <span className="font-bold font-display text-slate-900">
@@ -135,10 +131,18 @@ export function Layout({ children }: { children: React.ReactNode }) {
             </div>
           </div>
           <div className="border-t pt-8 text-center text-sm text-slate-400">
-            © {new Date().getFullYear()} {tenant?.name || "Projekt Grönland"}. All rights reserved.
+            (c) {new Date().getFullYear()} {tenant?.name || "Projekt Grönland"}. All rights reserved.
           </div>
         </div>
       </footer>
     </div>
   );
 }
+
+
+
+
+
+
+
+

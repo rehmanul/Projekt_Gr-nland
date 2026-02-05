@@ -89,14 +89,22 @@ export default function CustomerDashboard() {
     }, [setLocation]);
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-            <header className="bg-white border-b border-gray-200">
+        <div className="min-h-screen aurora-bg relative overflow-hidden">
+            <div className="pointer-events-none absolute -top-24 left-10 h-64 w-64 rounded-full bg-primary/20 blur-3xl float-slow" />
+            <div className="pointer-events-none absolute top-20 right-10 h-72 w-72 rounded-full bg-accent/20 blur-3xl float-fast" />
+
+            <header className="bg-white/70 border-b border-white/40 backdrop-blur-xl sticky top-0 z-40">
                 <div className="max-w-5xl mx-auto px-4 py-4 flex justify-between items-center">
                     <div className="flex items-center gap-3">
-                        <User className="w-8 h-8 text-blue-600" />
-                        <h1 className="text-xl font-bold text-gray-900">Customer Portal</h1>
+                        <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-primary to-sky-500 flex items-center justify-center shadow-md">
+                            <User className="w-5 h-5 text-white" />
+                        </div>
+                        <div>
+                            <h1 className="text-xl font-bold text-slate-900">Customer Portal</h1>
+                            <p className="text-xs text-slate-500">Track your campaign progress</p>
+                        </div>
                     </div>
-                    <button onClick={handleLogout} className="p-2 text-gray-500 hover:text-gray-700">
+                    <button onClick={handleLogout} className="p-2 text-slate-500 hover:text-slate-900">
                         <LogOut className="w-5 h-5" />
                     </button>
                 </div>
@@ -104,9 +112,9 @@ export default function CustomerDashboard() {
 
             <main className="max-w-5xl mx-auto px-4 py-8">
                 {loading ? (
-                    <div className="text-center text-gray-500">Loading campaigns...</div>
+                    <div className="text-center text-slate-500">Loading campaigns...</div>
                 ) : campaigns.length === 0 ? (
-                    <div className="text-center text-gray-500">No campaigns found.</div>
+                    <div className="text-center text-slate-500">No campaigns found.</div>
                 ) : (
                     <div className="grid gap-4">
                         {campaigns.map((campaign) => (
@@ -114,17 +122,17 @@ export default function CustomerDashboard() {
                                 key={campaign.id}
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                className="bg-white rounded-2xl shadow-lg p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4"
+                                className="glass rounded-2xl shadow-lg p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 hover:shadow-xl transition hover-lift"
                             >
                                 <div>
-                                    <h2 className="text-lg font-semibold text-gray-900">{campaign.campaignType}</h2>
-                                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                                    <h2 className="text-lg font-semibold text-slate-900">{campaign.campaignType}</h2>
+                                    <div className="flex items-center gap-2 text-sm text-slate-600">
                                         <Calendar className="w-4 h-4" />
                                         <span>Asset deadline: {new Date(campaign.assetDeadline).toLocaleDateString()}</span>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3">
-                                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary">
                                         {campaign.status === 'approved' || campaign.status === 'live' ? (
                                             <CheckCircle2 className="w-4 h-4" />
                                         ) : campaign.isOverdue ? (
@@ -140,7 +148,7 @@ export default function CustomerDashboard() {
                                 </div>
                                 <Link
                                     to={`/customer/campaign/${campaign.id}`}
-                                    className="text-blue-600 hover:text-blue-800 font-medium"
+                                    className="text-primary font-semibold"
                                 >
                                     View
                                 </Link>

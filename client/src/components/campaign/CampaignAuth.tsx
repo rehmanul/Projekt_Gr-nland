@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useSearch } from 'wouter';
 import { motion } from 'framer-motion';
-import { Mail, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Mail, Loader2, CheckCircle2, AlertCircle, Sparkles } from 'lucide-react';
 
-// Auth context for campaign portals
 export interface CampaignAuthUser {
     email: string;
     portalType: 'cs' | 'customer' | 'agency';
@@ -16,7 +15,6 @@ interface AuthState {
     isLoading: boolean;
 }
 
-// Storage key for auth
 const AUTH_STORAGE_KEY = 'campaign_auth';
 
 export function getCampaignAuth(): AuthState {
@@ -63,16 +61,21 @@ export async function requireCampaignSession(portalType: CampaignAuthUser["porta
     }
 }
 
-// Magic Link Request Component
+const portalNames = {
+    cs: 'CS Dashboard',
+    customer: 'Customer Portal',
+    agency: 'Agency Portal',
+};
+
+const portalTaglines = {
+    cs: 'Keep every campaign moving',
+    customer: 'Review and approve in minutes',
+    agency: 'Deliver standout drafts quickly',
+};
+
 export function MagicLinkRequest({ portalType }: { portalType: 'cs' | 'customer' | 'agency' }) {
     const [email, setEmail] = useState('');
     const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
-
-    const portalNames = {
-        cs: 'CS Dashboard',
-        customer: 'Customer Portal',
-        agency: 'Agency Portal'
-    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -85,79 +88,83 @@ export function MagicLinkRequest({ portalType }: { portalType: 'cs' | 'customer'
                 body: JSON.stringify({ email, portalType }),
             });
 
-            if (res.ok) {
-                setStatus('success');
-            } else {
-                setStatus('error');
-            }
+            setStatus(res.ok ? 'success' : 'error');
         } catch {
             setStatus('error');
         }
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+        <div className="min-h-screen flex items-center justify-center aurora-bg relative overflow-hidden px-4 py-10">
+            <div className="pointer-events-none absolute -top-24 left-10 h-64 w-64 rounded-full bg-primary/20 blur-3xl float-slow" />
+            <div className="pointer-events-none absolute top-20 right-10 h-72 w-72 rounded-full bg-accent/20 blur-3xl float-fast" />
+
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full"
+                className="gradient-border w-full max-w-md"
             >
-                <div className="text-center mb-8">
-                    <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <Mail className="w-8 h-8 text-blue-600" />
-                    </div>
-                    <h1 className="text-2xl font-bold text-gray-900">{portalNames[portalType]}</h1>
-                    <p className="text-gray-600 mt-2">Enter your email to receive a login link</p>
-                </div>
-
-                {status === 'success' ? (
-                    <div className="text-center">
-                        <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
-                        <p className="text-green-700 font-medium">Check your email for the login link!</p>
-                    </div>
-                ) : (
-                    <form onSubmit={handleSubmit}>
-                        <div className="mb-4">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
-                            <input
-                                type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                placeholder="you@example.com"
-                                required
-                            />
+                <div className="gradient-inner glass rounded-3xl p-8 hover-glow">
+                    <div className="text-center mb-8">
+                        <div className="w-16 h-16 bg-gradient-to-br from-primary to-sky-500 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                            <Mail className="w-8 h-8 text-white" />
                         </div>
+                        <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-slate-500 mb-2">
+                            <Sparkles className="w-4 h-4 text-primary" />
+                            Secure Access
+                        </div>
+                        <h1 className="text-2xl font-bold text-slate-900">{portalNames[portalType]}</h1>
+                        <p className="text-slate-600 mt-2">{portalTaglines[portalType]}</p>
+                    </div>
 
-                        {status === 'error' && (
-                            <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg flex items-center gap-2">
-                                <AlertCircle className="w-5 h-5" />
-                                <span>Failed to send magic link. Please try again.</span>
+                    {status === 'success' ? (
+                        <div className="text-center">
+                            <CheckCircle2 className="w-16 h-16 text-emerald-500 mx-auto mb-4" />
+                            <p className="text-emerald-700 font-medium">Check your email for the login link.</p>
+                        </div>
+                    ) : (
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-slate-600 mb-2">Email Address</label>
+                                <input
+                                    type="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    className="w-full px-4 py-3 rounded-xl input-glass"
+                                    placeholder="you@example.com"
+                                    required
+                                />
                             </div>
-                        )}
 
-                        <button
-                            type="submit"
-                            disabled={status === 'loading'}
-                            className="w-full py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-                        >
-                            {status === 'loading' ? (
-                                <>
-                                    <Loader2 className="w-5 h-5 animate-spin" />
-                                    Sending...
-                                </>
-                            ) : (
-                                'Send Magic Link'
+                            {status === 'error' && (
+                                <div className="p-3 bg-red-50 text-red-700 rounded-xl flex items-center gap-2 text-sm">
+                                    <AlertCircle className="w-4 h-4" />
+                                    <span>Failed to send magic link. Please try again.</span>
+                                </div>
                             )}
-                        </button>
-                    </form>
-                )}
+
+                            <button
+                                type="submit"
+                                disabled={status === 'loading'}
+                                className="w-full py-3 rounded-xl font-semibold text-white bg-gradient-to-r from-primary via-sky-500 to-accent shine shadow-lg shadow-primary/30 hover:shadow-primary/50 transition-all disabled:opacity-50 flex items-center justify-center gap-2 button-pop"
+                            >
+                                {status === 'loading' ? (
+                                    <>
+                                        <Loader2 className="w-5 h-5 animate-spin" />
+                                        Sending...
+                                    </>
+                                ) : (
+                                    'Send Magic Link'
+                                )}
+                            </button>
+                        </form>
+                    )}
+                </div>
             </motion.div>
         </div>
     );
 }
 
-// Magic Link Verification Component
 export function MagicLinkVerify({ portalType }: { portalType: 'cs' | 'customer' | 'agency' }) {
     const search = useSearch();
     const searchParams = new URLSearchParams(search);
@@ -178,7 +185,6 @@ export function MagicLinkVerify({ portalType }: { portalType: 'cs' | 'customer' 
                     setCampaignAuth(data.user);
                     setStatus('success');
 
-                    // Redirect to appropriate portal
                     setTimeout(() => {
                         const campaignId = searchParams.get('campaignId');
                         if (campaignId) {
@@ -195,36 +201,41 @@ export function MagicLinkVerify({ portalType }: { portalType: 'cs' | 'customer' 
     }, [search, setLocation, portalType]);
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+        <div className="min-h-screen flex items-center justify-center aurora-bg relative overflow-hidden px-4 py-10">
+            <div className="pointer-events-none absolute -top-24 left-10 h-64 w-64 rounded-full bg-primary/20 blur-3xl float-slow" />
+            <div className="pointer-events-none absolute top-20 right-10 h-72 w-72 rounded-full bg-accent/20 blur-3xl float-fast" />
+
             <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
+                initial={{ opacity: 0, scale: 0.96 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center"
+                className="gradient-border w-full max-w-md"
             >
-                {status === 'verifying' && (
-                    <>
-                        <Loader2 className="w-16 h-16 text-blue-600 animate-spin mx-auto mb-4" />
-                        <p className="text-gray-600">Verifying your login...</p>
-                    </>
-                )}
-                {status === 'success' && (
-                    <>
-                        <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
-                        <p className="text-green-700 font-medium">Login successful! Redirecting...</p>
-                    </>
-                )}
-                {status === 'error' && (
-                    <>
-                        <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-                        <p className="text-red-700 font-medium">Invalid or expired link</p>
-                        <button
-                            onClick={() => setLocation(`/${portalType}/login`)}
-                            className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                        >
-                            Request New Link
-                        </button>
-                    </>
-                )}
+                <div className="gradient-inner glass rounded-3xl p-8 text-center hover-glow">
+                    {status === 'verifying' && (
+                        <>
+                            <Loader2 className="w-16 h-16 text-primary animate-spin mx-auto mb-4" />
+                            <p className="text-slate-600">Verifying your login...</p>
+                        </>
+                    )}
+                    {status === 'success' && (
+                        <>
+                            <CheckCircle2 className="w-16 h-16 text-emerald-500 mx-auto mb-4" />
+                            <p className="text-emerald-700 font-medium">Login successful! Redirecting...</p>
+                        </>
+                    )}
+                    {status === 'error' && (
+                        <>
+                            <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+                            <p className="text-red-700 font-medium">Invalid or expired link</p>
+                            <button
+                                onClick={() => setLocation(`/${portalType}/login`)}
+                                className="mt-4 px-6 py-2 rounded-xl text-white bg-gradient-to-r from-primary via-sky-500 to-accent button-pop"
+                            >
+                                Request New Link
+                            </button>
+                        </>
+                    )}
+                </div>
             </motion.div>
         </div>
     );

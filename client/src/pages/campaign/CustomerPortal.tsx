@@ -12,6 +12,7 @@ import {
     MessageSquare,
     Calendar,
     AlertTriangle,
+    Sparkles,
 } from 'lucide-react';
 import { getCampaignAuthHeader, requireCampaignSession, setCampaignAuth } from '@/components/campaign/CampaignAuth';
 
@@ -53,8 +54,8 @@ const statusLabels: Record<string, string> = {
     draft_submitted: 'Draft ready for your review',
     customer_review: 'Pending your review',
     revision_requested: 'Changes requested',
-    approved: 'Approved!',
-    live: 'Campaign is Live!',
+    approved: 'Approved',
+    live: 'Campaign is Live',
 };
 
 export default function CustomerPortal() {
@@ -236,16 +237,16 @@ export default function CustomerPortal() {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
-                <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full" />
+            <div className="min-h-screen flex items-center justify-center aurora-bg">
+                <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
             </div>
         );
     }
 
     if (!campaign) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
-                <p className="text-gray-500">Campaign not found</p>
+            <div className="min-h-screen flex items-center justify-center aurora-bg">
+                <p className="text-slate-500">Campaign not found</p>
             </div>
         );
     }
@@ -256,48 +257,55 @@ export default function CustomerPortal() {
     const canReviewDraft = ['draft_submitted', 'customer_review'].includes(campaign.status);
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-            <header className="bg-white border-b border-gray-200">
+        <div className="min-h-screen aurora-bg relative overflow-hidden">
+            <div className="pointer-events-none absolute -top-24 left-10 h-64 w-64 rounded-full bg-primary/20 blur-3xl float-slow" />
+            <div className="pointer-events-none absolute top-20 right-10 h-72 w-72 rounded-full bg-accent/20 blur-3xl float-fast" />
+
+            <header className="bg-white/70 border-b border-white/40 backdrop-blur-xl sticky top-0 z-40">
                 <div className="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
                     <div className="flex items-center gap-3">
-                        <ArrowLeft className="w-5 h-5 text-blue-600" />
-                        <Link to="/customer" className="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                        <ArrowLeft className="w-5 h-5 text-primary" />
+                        <Link to="/customer" className="text-primary hover:text-slate-900 text-sm font-medium">
                             All Campaigns
                         </Link>
                     </div>
-                    <button onClick={handleLogout} className="p-2 text-gray-500 hover:text-gray-700">
+                    <button onClick={handleLogout} className="p-2 text-slate-500 hover:text-slate-900">
                         <XCircle className="w-5 h-5" />
                     </button>
                 </div>
             </header>
 
             <div className="max-w-4xl mx-auto px-4 py-8">
-                {/* Header */}
                 <motion.div
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-white rounded-2xl shadow-lg p-6 mb-6"
+                    className="glass rounded-2xl shadow-lg p-6 hover-glow mb-6"
                 >
                     <div className="flex items-center justify-between mb-4">
-                        <h1 className="text-2xl font-bold text-gray-900">{campaign.campaignType}</h1>
+                        <div>
+                            <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-slate-500">
+                                <Sparkles className="w-4 h-4 text-primary" />
+                                Customer review
+                            </div>
+                            <h1 className="text-2xl font-bold text-slate-900">{campaign.campaignType}</h1>
+                        </div>
                         <span className={`px-4 py-2 rounded-full text-sm font-medium ${campaign.status === 'approved' || campaign.status === 'live'
-                            ? 'bg-green-100 text-green-800'
+                            ? 'bg-emerald-100 text-emerald-800'
                             : campaign.status === 'revision_requested'
                                 ? 'bg-red-100 text-red-800'
-                                : 'bg-blue-100 text-blue-800'
+                                : 'bg-primary/10 text-primary'
                             }`}>
                             {statusLabels[campaign.status] || campaign.status}
                         </span>
                     </div>
 
-                    {/* Deadline countdown */}
-                    <div className="flex items-center gap-4 text-sm text-gray-600">
+                    <div className="flex items-center gap-4 text-sm text-slate-600">
                         <div className="flex items-center gap-2">
                             <Calendar className="w-4 h-4" />
                             <span>Asset Deadline: {new Date(campaign.assetDeadline).toLocaleDateString()}</span>
                         </div>
                         {campaign.daysUntilDeadline > 0 && (
-                            <span className={`font-medium ${campaign.daysUntilDeadline <= 3 ? 'text-orange-600' : 'text-gray-600'}`}>
+                            <span className={`font-medium ${campaign.daysUntilDeadline <= 3 ? 'text-orange-600' : 'text-slate-600'}`}>
                                 ({campaign.daysUntilDeadline} days left)
                             </span>
                         )}
@@ -310,18 +318,17 @@ export default function CustomerPortal() {
                     </div>
                 </motion.div>
 
-                {/* Upload Assets Section */}
                 {canUploadAssets && (
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="bg-white rounded-2xl shadow-lg p-6 mb-6"
+                        className="glass rounded-2xl shadow-lg p-6 hover-glow mb-6"
                     >
-                        <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                            <Upload className="w-5 h-5 text-blue-600" />
+                        <h2 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                            <Upload className="w-5 h-5 text-primary" />
                             Upload Your Brand Assets
                         </h2>
-                        <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-blue-500 transition-colors">
+                        <div className="border-2 border-dashed border-white/80 rounded-xl p-8 text-center hover:border-primary/60 transition-colors">
                             <input
                                 type="file"
                                 multiple
@@ -335,12 +342,12 @@ export default function CustomerPortal() {
                                 className="cursor-pointer flex flex-col items-center"
                             >
                                 {uploading ? (
-                                    <div className="animate-spin w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full" />
+                                    <div className="animate-spin w-10 h-10 border-4 border-primary border-t-transparent rounded-full" />
                                 ) : (
                                     <>
-                                        <Upload className="w-10 h-10 text-gray-400 mb-3" />
-                                        <p className="text-gray-600 mb-1">Click to upload or drag and drop</p>
-                                        <p className="text-sm text-gray-400">Images, PDFs, Videos (max 50MB each)</p>
+                                        <Upload className="w-10 h-10 text-slate-400 mb-3" />
+                                        <p className="text-slate-600 mb-1">Click to upload or drag and drop</p>
+                                        <p className="text-sm text-slate-400">Images, PDFs, Videos (max 50MB each)</p>
                                     </>
                                 )}
                             </label>
@@ -348,28 +355,27 @@ export default function CustomerPortal() {
                     </motion.div>
                 )}
 
-                {/* Your Assets */}
                 {customerAssets.length > 0 && (
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="bg-white rounded-2xl shadow-lg p-6 mb-6"
+                        className="glass rounded-2xl shadow-lg p-6 hover-glow mb-6"
                     >
-                        <h2 className="text-lg font-semibold text-gray-900 mb-4">Your Uploaded Assets</h2>
+                        <h2 className="text-lg font-semibold text-slate-900 mb-4">Your Uploaded Assets</h2>
                         <div className="space-y-2">
                             {customerAssets.map(asset => (
-                                <div key={asset.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                <div key={asset.id} className="flex items-center justify-between p-3 bg-white/70 rounded-lg hover-lift">
                                     <div className="flex items-center gap-3">
-                                        <FileText className="w-5 h-5 text-gray-400" />
-                                        <span className="text-gray-700">{asset.filename}</span>
+                                        <FileText className="w-5 h-5 text-slate-400" />
+                                        <span className="text-slate-700">{asset.filename}</span>
                                     </div>
                                     <div className="flex items-center gap-4">
-                                        <span className="text-sm text-gray-500">
+                                        <span className="text-sm text-slate-500">
                                             {new Date(asset.uploadedAt).toLocaleString()}
                                         </span>
                                         <button
                                             onClick={() => handleDownload(asset)}
-                                            className="flex items-center gap-1 text-blue-600 hover:text-blue-800"
+                                            className="flex items-center gap-1 text-primary hover:text-slate-900"
                                         >
                                             <Download className="w-4 h-4" />
                                             Download
@@ -381,24 +387,23 @@ export default function CustomerPortal() {
                     </motion.div>
                 )}
 
-                {/* Draft Review Section */}
                 {drafts.length > 0 && (
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="bg-white rounded-2xl shadow-lg p-6 mb-6"
+                        className="glass rounded-2xl shadow-lg p-6 hover-glow mb-6"
                     >
-                        <h2 className="text-lg font-semibold text-gray-900 mb-4">Draft for Review</h2>
+                        <h2 className="text-lg font-semibold text-slate-900 mb-4">Draft for Review</h2>
                         <div className="space-y-2 mb-6">
                             {drafts.map(draft => (
-                                <div key={draft.id} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                                <div key={draft.id} className="flex items-center justify-between p-3 bg-primary/10 rounded-lg hover-lift">
                                     <div className="flex items-center gap-3">
-                                        <FileText className="w-5 h-5 text-blue-600" />
-                                        <span className="text-gray-700">{draft.filename}</span>
+                                        <FileText className="w-5 h-5 text-primary" />
+                                        <span className="text-slate-700">{draft.filename}</span>
                                     </div>
                                     <button
                                         onClick={() => handleDownload(draft)}
-                                        className="flex items-center gap-1 text-blue-600 hover:text-blue-800"
+                                        className="flex items-center gap-1 text-primary hover:text-slate-900"
                                     >
                                         <Download className="w-4 h-4" />
                                         Download
@@ -408,17 +413,17 @@ export default function CustomerPortal() {
                         </div>
 
                         {canReviewDraft && (
-                            <div className="flex gap-4">
+                            <div className="flex gap-4 flex-col md:flex-row">
                                 <button
                                     onClick={handleApprove}
-                                    className="flex-1 flex items-center justify-center gap-2 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+                                    className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-white bg-gradient-to-r from-emerald-500 to-lime-500 shadow-md font-medium button-pop"
                                 >
                                     <CheckCircle2 className="w-5 h-5" />
                                     Approve Draft
                                 </button>
                                 <button
                                     onClick={() => setShowFeedbackForm(true)}
-                                    className="flex-1 flex items-center justify-center gap-2 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-medium"
+                                    className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-white bg-gradient-to-r from-orange-500 to-amber-500 shadow-md font-medium button-pop"
                                 >
                                     <MessageSquare className="w-5 h-5" />
                                     Request Changes
@@ -435,21 +440,21 @@ export default function CustomerPortal() {
                                 <textarea
                                     value={feedback}
                                     onChange={(e) => setFeedback(e.target.value)}
-                                    placeholder="Describe the changes you'd like..."
-                                    className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+                                    placeholder="Describe the changes you would like..."
+                                    className="w-full p-4 rounded-lg input-glass"
                                     rows={4}
                                 />
                                 <div className="flex gap-2 mt-2">
                                     <button
                                         onClick={handleRequestChanges}
                                         disabled={!feedback.trim()}
-                                        className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50"
+                                        className="px-4 py-2 rounded-lg text-white bg-gradient-to-r from-orange-500 to-amber-500 disabled:opacity-50 button-pop"
                                     >
                                         Submit Feedback
                                     </button>
                                     <button
                                         onClick={() => setShowFeedbackForm(false)}
-                                        className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+                                        className="px-4 py-2 bg-white/70 text-slate-700 rounded-lg hover:bg-white"
                                     >
                                         Cancel
                                     </button>
@@ -459,31 +464,30 @@ export default function CustomerPortal() {
                     </motion.div>
                 )}
 
-                {/* Activity Timeline */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-white rounded-2xl shadow-lg p-6"
+                    className="glass rounded-2xl shadow-lg p-6 hover-glow"
                 >
-                    <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                        <Clock className="w-5 h-5 text-gray-600" />
+                    <h2 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                        <Clock className="w-5 h-5 text-slate-600" />
                         Activity Timeline
                     </h2>
                     <div className="space-y-4">
                         {campaign.activities.map((activity, i) => (
                             <div key={activity.id} className="flex gap-4">
                                 <div className="flex flex-col items-center">
-                                    <div className="w-3 h-3 bg-blue-600 rounded-full" />
+                                    <div className="w-3 h-3 bg-primary rounded-full" />
                                     {i < campaign.activities.length - 1 && (
-                                        <div className="w-0.5 h-full bg-gray-200 mt-1" />
+                                        <div className="w-0.5 h-full bg-white/60 mt-1" />
                                     )}
                                 </div>
                                 <div className="flex-1 pb-4">
-                                    <p className="text-gray-700 font-medium">
+                                    <p className="text-slate-700 font-medium">
                                         {activity.action.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                                     </p>
-                                    <p className="text-sm text-gray-500">
-                                        {activity.actorType} • {new Date(activity.createdAt).toLocaleString()}
+                                    <p className="text-sm text-slate-500">
+                                        {activity.actorType} - {new Date(activity.createdAt).toLocaleString()}
                                     </p>
                                 </div>
                             </div>

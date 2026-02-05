@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLocation, Link } from 'wouter';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Save, PlusCircle } from 'lucide-react';
+import { ArrowLeft, Save, PlusCircle, Sparkles } from 'lucide-react';
 import { getCampaignAuthHeader, requireCampaignSession } from '@/components/campaign/CampaignAuth';
 
 interface Agency {
@@ -137,32 +137,42 @@ export default function CampaignCreate() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            <header className="bg-white border-b border-gray-200">
+        <div className="min-h-screen aurora-bg relative overflow-hidden">
+            <div className="pointer-events-none absolute -top-24 left-10 h-64 w-64 rounded-full bg-primary/20 blur-3xl float-slow" />
+            <div className="pointer-events-none absolute top-20 right-10 h-72 w-72 rounded-full bg-accent/20 blur-3xl float-fast" />
+
+            <header className="bg-white/70 border-b border-white/40 backdrop-blur-xl sticky top-0 z-40">
                 <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <Link to="/cs" className="text-gray-600 hover:text-gray-800">
+                        <Link to="/cs" className="text-slate-600 hover:text-slate-900">
                             <ArrowLeft className="w-5 h-5" />
                         </Link>
-                        <h1 className="text-xl font-bold text-gray-900">Create Campaign</h1>
+                        <div>
+                            <h1 className="text-xl font-bold text-slate-900">Create Campaign</h1>
+                            <p className="text-xs text-slate-500">Launch new customer work fast</p>
+                        </div>
                     </div>
                 </div>
             </header>
 
             <main className="max-w-5xl mx-auto px-4 py-8">
                 {loading ? (
-                    <div className="text-center text-gray-500">Loading...</div>
+                    <div className="text-center text-slate-500">Loading...</div>
                 ) : (
                     <div className="grid gap-6">
                         <motion.form
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             onSubmit={handleSubmit}
-                            className="bg-white rounded-2xl shadow-lg p-6 space-y-6"
+                            className="glass rounded-2xl shadow-lg p-6 hover-glow space-y-6"
                         >
                             <div>
-                                <h2 className="text-lg font-semibold text-gray-900">Campaign Details</h2>
-                                <p className="text-sm text-gray-500">Create a new campaign for a customer.</p>
+                                <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-slate-500">
+                                    <Sparkles className="w-4 h-4 text-primary" />
+                                    Campaign details
+                                </div>
+                                <h2 className="text-lg font-semibold text-slate-900 mt-2">Plan the timeline</h2>
+                                <p className="text-sm text-slate-500">Create a new campaign for a customer.</p>
                             </div>
 
                             {error && (
@@ -173,41 +183,41 @@ export default function CampaignCreate() {
 
                             <div className="grid md:grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Customer Name</label>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">Customer Name</label>
                                     <input
                                         type="text"
                                         value={form.customerName}
                                         onChange={(e) => handleChange('customerName', e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                                        className="w-full px-3 py-2 rounded-lg input-glass"
                                         required
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Customer Email</label>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">Customer Email</label>
                                     <input
                                         type="email"
                                         value={form.customerEmail}
                                         onChange={(e) => handleChange('customerEmail', e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                                        className="w-full px-3 py-2 rounded-lg input-glass"
                                         required
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Campaign Type</label>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">Campaign Type</label>
                                     <input
                                         type="text"
                                         value={form.campaignType}
                                         onChange={(e) => handleChange('campaignType', e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                                        className="w-full px-3 py-2 rounded-lg input-glass"
                                         required
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Agency</label>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">Agency</label>
                                     <select
                                         value={form.agencyId}
                                         onChange={(e) => handleChange('agencyId', e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                                        className="w-full px-3 py-2 rounded-lg input-glass"
                                         required
                                     >
                                         <option value="">Select an agency</option>
@@ -219,22 +229,22 @@ export default function CampaignCreate() {
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Asset Deadline</label>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">Asset Deadline</label>
                                     <input
                                         type="date"
                                         value={form.assetDeadline}
                                         onChange={(e) => handleChange('assetDeadline', e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                                        className="w-full px-3 py-2 rounded-lg input-glass"
                                         required
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Go-live Date</label>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">Go-live Date</label>
                                     <input
                                         type="date"
                                         value={form.goLiveDate}
                                         onChange={(e) => handleChange('goLiveDate', e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                                        className="w-full px-3 py-2 rounded-lg input-glass"
                                         required
                                     />
                                 </div>
@@ -244,7 +254,7 @@ export default function CampaignCreate() {
                                 <button
                                     type="submit"
                                     disabled={submitting}
-                                    className="inline-flex items-center gap-2 px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-60"
+                                    className="inline-flex items-center gap-2 px-5 py-2 rounded-xl text-white bg-gradient-to-r from-primary via-sky-500 to-accent shine shadow-lg shadow-primary/30 disabled:opacity-60 button-pop"
                                 >
                                     <Save className="w-4 h-4" />
                                     {submitting ? 'Creating...' : 'Create Campaign'}
@@ -255,11 +265,11 @@ export default function CampaignCreate() {
                         <motion.div
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="bg-white rounded-2xl shadow-lg p-6 space-y-4"
+                            className="glass rounded-2xl shadow-lg p-6 hover-glow space-y-4"
                         >
                             <div>
-                                <h2 className="text-lg font-semibold text-gray-900">Add New Agency</h2>
-                                <p className="text-sm text-gray-500">Create an agency if it is not listed above.</p>
+                                <h2 className="text-lg font-semibold text-slate-900">Add New Agency</h2>
+                                <p className="text-sm text-slate-500">Create an agency if it is not listed above.</p>
                             </div>
                             <div className="grid md:grid-cols-3 gap-4">
                                 <input
@@ -267,27 +277,27 @@ export default function CampaignCreate() {
                                     placeholder="Agency name"
                                     value={newAgency.name}
                                     onChange={(e) => setNewAgency((prev) => ({ ...prev, name: e.target.value }))}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                                    className="w-full px-3 py-2 rounded-lg input-glass"
                                 />
                                 <input
                                     type="email"
                                     placeholder="Agency email"
                                     value={newAgency.email}
                                     onChange={(e) => setNewAgency((prev) => ({ ...prev, email: e.target.value }))}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                                    className="w-full px-3 py-2 rounded-lg input-glass"
                                 />
                                 <input
                                     type="text"
                                     placeholder="Contact name (optional)"
                                     value={newAgency.contactName}
                                     onChange={(e) => setNewAgency((prev) => ({ ...prev, contactName: e.target.value }))}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                                    className="w-full px-3 py-2 rounded-lg input-glass"
                                 />
                             </div>
                             <button
                                 type="button"
                                 onClick={handleCreateAgency}
-                                className="inline-flex items-center gap-2 px-4 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50"
+                                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-primary text-primary hover:bg-primary/10 button-pop"
                             >
                                 <PlusCircle className="w-4 h-4" />
                                 Add Agency
@@ -299,4 +309,3 @@ export default function CampaignCreate() {
         </div>
     );
 }
-

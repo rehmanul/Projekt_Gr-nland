@@ -104,16 +104,16 @@ export default function JobSearch() {
       : "Relevance";
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-20">
+    <div className="min-h-screen pb-20">
       {/* Sticky Search Bar */}
-      <div className="bg-white border-b shadow-sm sticky top-16 z-40">
+      <div className="glass border-b sticky top-16 z-40">
         <div className="container mx-auto px-4 py-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="relative md:col-span-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <Input
                 placeholder="Job title or keywords"
-                className="pl-9 bg-slate-50 border-slate-200"
+                className="pl-9 input-glass"
                 value={basicFilters.search}
                 onChange={(e) => setBasicFilters(prev => ({ ...prev, search: e.target.value }))}
               />
@@ -122,7 +122,7 @@ export default function JobSearch() {
               <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <Input
                 placeholder="Location"
-                className="pl-9 bg-slate-50 border-slate-200"
+                className="pl-9 input-glass"
                 value={basicFilters.location}
                 onChange={(e) => setBasicFilters(prev => ({ ...prev, location: e.target.value }))}
               />
@@ -132,7 +132,7 @@ export default function JobSearch() {
                 value={basicFilters.employmentType}
                 onValueChange={(val) => setBasicFilters(prev => ({ ...prev, employmentType: val }))}
               >
-                <SelectTrigger className="bg-slate-50 border-slate-200">
+                <SelectTrigger className="input-glass">
                   <Briefcase className="w-4 h-4 mr-2 text-slate-400" />
                   <SelectValue placeholder="Job Type" />
                 </SelectTrigger>
@@ -149,7 +149,7 @@ export default function JobSearch() {
               <Button
                 onClick={handleClearAll}
                 variant="outline"
-                className="w-full border-slate-200 text-slate-600 hover:bg-slate-100"
+                className="w-full border-white/60 text-slate-600 hover:bg-white/80 button-pop"
               >
                 Reset Filters
               </Button>
@@ -173,7 +173,7 @@ export default function JobSearch() {
           </h1>
           <div className="text-sm text-slate-500">
             Sorted by <span className="font-semibold text-slate-700">{sortLabel}</span>
-            {advancedFilters.sortOrder === "asc" ? " ↑" : " ↓"}
+            {advancedFilters.sortOrder === "asc" ? " Up" : " Down"}
           </div>
         </div>
 
@@ -181,7 +181,7 @@ export default function JobSearch() {
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="h-64 rounded-2xl bg-slate-200 animate-pulse" />
+              <div key={i} className="h-64 rounded-2xl bg-white/60 animate-pulse" />
             ))}
           </div>
         ) : error ? (
@@ -190,7 +190,7 @@ export default function JobSearch() {
             <p className="text-slate-500 mt-2">Failed to load jobs. Please try again later.</p>
           </div>
         ) : jobs?.length === 0 ? (
-          <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-slate-300">
+          <div className="text-center py-20 bg-white/80 rounded-2xl border border-dashed border-slate-200">
             <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Search className="w-8 h-8 text-slate-400" />
             </div>
@@ -215,3 +215,4 @@ export default function JobSearch() {
     </div>
   );
 }
+

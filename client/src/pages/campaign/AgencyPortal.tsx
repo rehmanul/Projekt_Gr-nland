@@ -202,16 +202,16 @@ export default function AgencyPortalCampaign() {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
-                <div className="animate-spin w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full" />
+            <div className="min-h-screen flex items-center justify-center aurora-bg">
+                <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
             </div>
         );
     }
 
     if (!campaign) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
-                <p className="text-gray-500">Campaign not found</p>
+            <div className="min-h-screen flex items-center justify-center aurora-bg">
+                <p className="text-slate-500">Campaign not found</p>
             </div>
         );
     }
@@ -221,19 +221,26 @@ export default function AgencyPortalCampaign() {
     const canUploadDraft = ['assets_uploaded', 'draft_in_progress', 'revision_requested'].includes(campaign.status);
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100">
-            {/* Header */}
-            <header className="bg-white border-b border-gray-200">
+        <div className="min-h-screen aurora-bg relative overflow-hidden">
+            <div className="pointer-events-none absolute -top-24 left-10 h-64 w-64 rounded-full bg-primary/20 blur-3xl float-slow" />
+            <div className="pointer-events-none absolute top-20 right-10 h-72 w-72 rounded-full bg-accent/20 blur-3xl float-fast" />
+
+            <header className="bg-white/70 border-b border-white/40 backdrop-blur-xl sticky top-0 z-40">
                 <div className="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
                     <div className="flex items-center gap-3">
-                        <Building2 className="w-8 h-8 text-purple-600" />
-                        <h1 className="text-xl font-bold text-gray-900">Agency Portal</h1>
+                        <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-primary to-sky-500 flex items-center justify-center shadow-md">
+                            <Building2 className="w-5 h-5 text-white" />
+                        </div>
+                        <div>
+                            <h1 className="text-xl font-bold text-slate-900">Agency Portal</h1>
+                            <p className="text-xs text-slate-500">Create drafts and iterate fast</p>
+                        </div>
                     </div>
                     <div className="flex items-center gap-4">
-                        <Link to="/agency" className="text-purple-600 hover:text-purple-800">All Campaigns</Link>
+                        <Link to="/agency" className="text-primary hover:text-slate-900">All Campaigns</Link>
                         <button
                             onClick={handleLogout}
-                            className="p-2 text-gray-500 hover:text-gray-700"
+                            className="p-2 text-slate-500 hover:text-slate-900"
                         >
                             <LogOut className="w-5 h-5" />
                         </button>
@@ -242,28 +249,27 @@ export default function AgencyPortalCampaign() {
             </header>
 
             <div className="max-w-4xl mx-auto px-4 py-8">
-                {/* Campaign Header */}
                 <motion.div
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-white rounded-2xl shadow-lg p-6 mb-6"
+                    className="glass rounded-2xl shadow-lg p-6 hover-glow mb-6"
                 >
                     <div className="flex items-center justify-between mb-4">
                         <div>
-                            <h2 className="text-2xl font-bold text-gray-900">{campaign.customerName}</h2>
-                            <p className="text-gray-600">{campaign.campaignType}</p>
+                            <h2 className="text-2xl font-bold text-slate-900">{campaign.customerName}</h2>
+                            <p className="text-slate-600">{campaign.campaignType}</p>
                         </div>
                         <span className={`px-4 py-2 rounded-full text-sm font-medium ${campaign.status === 'revision_requested'
                             ? 'bg-red-100 text-red-800'
                             : campaign.status === 'approved' || campaign.status === 'live'
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-purple-100 text-purple-800'
+                                ? 'bg-emerald-100 text-emerald-800'
+                                : 'bg-primary/10 text-primary'
                             }`}>
                             {statusLabels[campaign.status] || campaign.status}
                         </span>
                     </div>
 
-                    <div className="flex items-center gap-6 text-sm text-gray-600">
+                    <div className="flex items-center gap-6 text-sm text-slate-600">
                         <div className="flex items-center gap-2">
                             <Calendar className="w-4 h-4" />
                             <span>Go-live: {new Date(campaign.goLiveDate).toLocaleDateString()}</span>
@@ -277,7 +283,6 @@ export default function AgencyPortalCampaign() {
                     </div>
                 </motion.div>
 
-                {/* Customer Feedback Alert */}
                 {campaign.status === 'revision_requested' && campaign.customerFeedback && (
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
@@ -294,27 +299,26 @@ export default function AgencyPortalCampaign() {
                     </motion.div>
                 )}
 
-                {/* Customer Assets */}
                 {customerAssets.length > 0 && (
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="bg-white rounded-2xl shadow-lg p-6 mb-6"
+                        className="glass rounded-2xl shadow-lg p-6 hover-glow mb-6"
                     >
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                            <FileText className="w-5 h-5 text-purple-600" />
+                        <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                            <FileText className="w-5 h-5 text-primary" />
                             Customer Brand Assets
                         </h3>
                         <div className="space-y-2">
                             {customerAssets.map(asset => (
-                                <div key={asset.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                <div key={asset.id} className="flex items-center justify-between p-3 bg-white/70 rounded-lg hover-lift">
                                     <div className="flex items-center gap-3">
-                                        <FileText className="w-5 h-5 text-gray-400" />
-                                        <span className="text-gray-700">{asset.filename}</span>
+                                        <FileText className="w-5 h-5 text-slate-400" />
+                                        <span className="text-slate-700">{asset.filename}</span>
                                     </div>
                                     <button
                                         onClick={() => handleDownload(asset)}
-                                        className="flex items-center gap-1 text-purple-600 hover:text-purple-800"
+                                        className="flex items-center gap-1 text-primary hover:text-slate-900"
                                     >
                                         <Download className="w-4 h-4" />
                                         Download
@@ -325,18 +329,17 @@ export default function AgencyPortalCampaign() {
                     </motion.div>
                 )}
 
-                {/* Upload Draft Section */}
                 {canUploadDraft && (
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="bg-white rounded-2xl shadow-lg p-6 mb-6"
+                        className="glass rounded-2xl shadow-lg p-6 hover-glow mb-6"
                     >
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                            <Upload className="w-5 h-5 text-purple-600" />
+                        <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                            <Upload className="w-5 h-5 text-primary" />
                             Upload Draft for Review
                         </h3>
-                        <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-purple-500 transition-colors">
+                        <div className="border-2 border-dashed border-white/80 rounded-xl p-8 text-center hover:border-primary/60 transition-colors">
                             <input
                                 type="file"
                                 multiple
@@ -350,12 +353,12 @@ export default function AgencyPortalCampaign() {
                                 className="cursor-pointer flex flex-col items-center"
                             >
                                 {uploading ? (
-                                    <div className="animate-spin w-10 h-10 border-4 border-purple-600 border-t-transparent rounded-full" />
+                                    <div className="animate-spin w-10 h-10 border-4 border-primary border-t-transparent rounded-full" />
                                 ) : (
                                     <>
-                                        <Upload className="w-10 h-10 text-gray-400 mb-3" />
-                                        <p className="text-gray-600 mb-1">Click to upload draft for customer review</p>
-                                        <p className="text-sm text-gray-400">Images, PDFs, Videos (max 50MB each)</p>
+                                        <Upload className="w-10 h-10 text-slate-400 mb-3" />
+                                        <p className="text-slate-600 mb-1">Click to upload draft for customer review</p>
+                                        <p className="text-sm text-slate-400">Images, PDFs, Videos (max 50MB each)</p>
                                     </>
                                 )}
                             </label>
@@ -363,28 +366,27 @@ export default function AgencyPortalCampaign() {
                     </motion.div>
                 )}
 
-                {/* Your Submitted Drafts */}
                 {drafts.length > 0 && (
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="bg-white rounded-2xl shadow-lg p-6 mb-6"
+                        className="glass rounded-2xl shadow-lg p-6 hover-glow mb-6"
                     >
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Submitted Drafts</h3>
+                        <h3 className="text-lg font-semibold text-slate-900 mb-4">Submitted Drafts</h3>
                         <div className="space-y-2">
                             {drafts.map(draft => (
-                                <div key={draft.id} className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
+                                <div key={draft.id} className="flex items-center justify-between p-3 bg-primary/10 rounded-lg hover-lift">
                                     <div className="flex items-center gap-3">
-                                        <CheckCircle2 className="w-5 h-5 text-purple-600" />
-                                        <span className="text-gray-700">{draft.filename}</span>
+                                        <CheckCircle2 className="w-5 h-5 text-primary" />
+                                        <span className="text-slate-700">{draft.filename}</span>
                                     </div>
                                     <div className="flex items-center gap-4">
-                                        <span className="text-sm text-gray-500">
+                                        <span className="text-sm text-slate-500">
                                             {new Date(draft.uploadedAt).toLocaleString()}
                                         </span>
                                         <button
                                             onClick={() => handleDownload(draft)}
-                                            className="flex items-center gap-1 text-purple-600 hover:text-purple-800"
+                                            className="flex items-center gap-1 text-primary hover:text-slate-900"
                                         >
                                             <Download className="w-4 h-4" />
                                             Download
@@ -396,31 +398,30 @@ export default function AgencyPortalCampaign() {
                     </motion.div>
                 )}
 
-                {/* Activity Timeline */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-white rounded-2xl shadow-lg p-6"
+                    className="glass rounded-2xl shadow-lg p-6 hover-glow"
                 >
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                        <Clock className="w-5 h-5 text-gray-600" />
+                    <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                        <Clock className="w-5 h-5 text-slate-600" />
                         Activity Timeline
                     </h3>
                     <div className="space-y-4">
                         {campaign.activities.map((activity, i) => (
                             <div key={activity.id} className="flex gap-4">
                                 <div className="flex flex-col items-center">
-                                    <div className="w-3 h-3 bg-purple-600 rounded-full" />
+                                    <div className="w-3 h-3 bg-primary rounded-full" />
                                     {i < campaign.activities.length - 1 && (
-                                        <div className="w-0.5 h-full bg-gray-200 mt-1" />
+                                        <div className="w-0.5 h-full bg-white/60 mt-1" />
                                     )}
                                 </div>
                                 <div className="flex-1 pb-4">
-                                    <p className="text-gray-700 font-medium">
+                                    <p className="text-slate-700 font-medium">
                                         {activity.action.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                                     </p>
-                                    <p className="text-sm text-gray-500">
-                                        {activity.actorType} • {new Date(activity.createdAt).toLocaleString()}
+                                    <p className="text-sm text-slate-500">
+                                        {activity.actorType} - {new Date(activity.createdAt).toLocaleString()}
                                     </p>
                                 </div>
                             </div>

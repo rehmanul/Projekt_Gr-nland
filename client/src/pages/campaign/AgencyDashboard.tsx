@@ -1,27 +1,25 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'wouter';
 import { motion } from 'framer-motion';
-import { Building2, Calendar, Clock, LogOut, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { Calendar, Clock, LogOut, CheckCircle2, AlertTriangle, Palette } from 'lucide-react';
 import { getCampaignAuthHeader, requireCampaignSession, setCampaignAuth } from '@/components/campaign/CampaignAuth';
 
 interface Campaign {
     id: number;
-    customerName: string;
     campaignType: string;
     status: string;
     assetDeadline: string;
-    goLiveDate: string;
-    isOverdue: boolean;
     daysUntilDeadline: number;
+    isOverdue: boolean;
 }
 
 const statusLabels: Record<string, string> = {
-    awaiting_assets: 'Awaiting Assets',
-    assets_uploaded: 'Assets Ready',
+    awaiting_assets: 'Waiting for assets',
+    assets_uploaded: 'Assets received',
     draft_in_progress: 'Draft in Progress',
-    draft_submitted: 'Draft Submitted',
-    customer_review: 'Customer Reviewing',
-    revision_requested: 'Revision Requested',
+    draft_submitted: 'Draft ready',
+    customer_review: 'Customer review',
+    revision_requested: 'Changes requested',
     approved: 'Approved',
     live: 'Live',
 };
@@ -91,14 +89,22 @@ export default function AgencyDashboard() {
     }, [setLocation]);
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100">
-            <header className="bg-white border-b border-gray-200">
+        <div className="min-h-screen aurora-bg relative overflow-hidden">
+            <div className="pointer-events-none absolute -top-24 left-10 h-64 w-64 rounded-full bg-primary/20 blur-3xl float-slow" />
+            <div className="pointer-events-none absolute top-20 right-10 h-72 w-72 rounded-full bg-accent/20 blur-3xl float-fast" />
+
+            <header className="bg-white/70 border-b border-white/40 backdrop-blur-xl sticky top-0 z-40">
                 <div className="max-w-5xl mx-auto px-4 py-4 flex justify-between items-center">
                     <div className="flex items-center gap-3">
-                        <Building2 className="w-8 h-8 text-purple-600" />
-                        <h1 className="text-xl font-bold text-gray-900">Agency Dashboard</h1>
+                        <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-primary to-sky-500 flex items-center justify-center shadow-md">
+                            <Palette className="w-5 h-5 text-white" />
+                        </div>
+                        <div>
+                            <h1 className="text-xl font-bold text-slate-900">Agency Portal</h1>
+                            <p className="text-xs text-slate-500">Create drafts and deliver fast</p>
+                        </div>
                     </div>
-                    <button onClick={handleLogout} className="p-2 text-gray-500 hover:text-gray-700">
+                    <button onClick={handleLogout} className="p-2 text-slate-500 hover:text-slate-900">
                         <LogOut className="w-5 h-5" />
                     </button>
                 </div>
@@ -106,9 +112,9 @@ export default function AgencyDashboard() {
 
             <main className="max-w-5xl mx-auto px-4 py-8">
                 {loading ? (
-                    <div className="text-center text-gray-500">Loading campaigns...</div>
+                    <div className="text-center text-slate-500">Loading campaigns...</div>
                 ) : campaigns.length === 0 ? (
-                    <div className="text-center text-gray-500">No campaigns assigned yet.</div>
+                    <div className="text-center text-slate-500">No campaigns found.</div>
                 ) : (
                     <div className="grid gap-4">
                         {campaigns.map((campaign) => (
@@ -116,18 +122,17 @@ export default function AgencyDashboard() {
                                 key={campaign.id}
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                className="bg-white rounded-2xl shadow-lg p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4"
+                                className="glass rounded-2xl shadow-lg p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 hover:shadow-xl transition hover-lift"
                             >
                                 <div>
-                                    <h2 className="text-lg font-semibold text-gray-900">{campaign.customerName}</h2>
-                                    <p className="text-sm text-gray-500">{campaign.campaignType}</p>
-                                </div>
-                                <div className="flex items-center gap-3 text-sm text-gray-600">
-                                    <Calendar className="w-4 h-4" />
-                                    <span>Go-live: {new Date(campaign.goLiveDate).toLocaleDateString()}</span>
+                                    <h2 className="text-lg font-semibold text-slate-900">{campaign.campaignType}</h2>
+                                    <div className="flex items-center gap-2 text-sm text-slate-600">
+                                        <Calendar className="w-4 h-4" />
+                                        <span>Asset deadline: {new Date(campaign.assetDeadline).toLocaleDateString()}</span>
+                                    </div>
                                 </div>
                                 <div className="flex items-center gap-3">
-                                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary">
                                         {campaign.status === 'approved' || campaign.status === 'live' ? (
                                             <CheckCircle2 className="w-4 h-4" />
                                         ) : campaign.isOverdue ? (
@@ -143,7 +148,7 @@ export default function AgencyDashboard() {
                                 </div>
                                 <Link
                                     to={`/agency/campaign/${campaign.id}`}
-                                    className="text-purple-600 hover:text-purple-800 font-medium"
+                                    className="text-primary font-semibold"
                                 >
                                     View
                                 </Link>

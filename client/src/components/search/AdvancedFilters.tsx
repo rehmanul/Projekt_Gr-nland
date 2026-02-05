@@ -72,9 +72,9 @@ const SORT_OPTIONS = [
 
 function formatSalary(value: number): string {
     if (value >= 1000) {
-        return `€${Math.floor(value / 1000)}k`;
+        return `EUR ${Math.floor(value / 1000)}k`;
     }
-    return `€${value}`;
+    return `EUR ${value}`;
 }
 
 export function AdvancedFiltersPanel({ filters, onChange, onClear }: AdvancedFiltersProps) {
@@ -86,14 +86,6 @@ export function AdvancedFiltersPanel({ filters, onChange, onClear }: AdvancedFil
             ? [...current, value]
             : current.filter(v => v !== value);
         onChange({ ...filters, [field]: updated });
-    };
-
-    const handleSalaryChange = (values: number[]) => {
-        onChange({
-            ...filters,
-            salaryMin: values[0] === 0 ? undefined : values[0] * 1000,
-            salaryMax: values[1] === 200 ? undefined : values[1] * 1000,
-        });
     };
 
     const activeFilterCount = [
@@ -109,8 +101,8 @@ export function AdvancedFiltersPanel({ filters, onChange, onClear }: AdvancedFil
         const active: { label: string; onRemove: () => void }[] = [];
 
         if (filters.salaryMin || filters.salaryMax) {
-            const min = filters.salaryMin ? formatSalary(filters.salaryMin) : '€0';
-            const max = filters.salaryMax ? formatSalary(filters.salaryMax) : '€200k+';
+            const min = filters.salaryMin ? formatSalary(filters.salaryMin) : 'EUR 0';
+            const max = filters.salaryMax ? formatSalary(filters.salaryMax) : 'EUR 200k+';
             active.push({
                 label: `${min} - ${max}`,
                 onRemove: () => onChange({ ...filters, salaryMin: undefined, salaryMax: undefined }),
@@ -158,16 +150,15 @@ export function AdvancedFiltersPanel({ filters, onChange, onClear }: AdvancedFil
     };
 
     return (
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-            {/* Header */}
+        <div className="glass rounded-2xl border border-white/60 shadow-sm hover-glow overflow-hidden">
             <button
                 onClick={() => setIsExpanded(!isExpanded)}
-                className="w-full flex items-center justify-between px-4 py-3 hover:bg-slate-50 transition-colors"
+                className="w-full flex items-center justify-between px-4 py-3 hover:bg-white/60 transition-colors"
             >
                 <div className="flex items-center gap-2">
                     <span className="font-semibold text-slate-700">Advanced Filters</span>
                     {activeFilterCount > 0 && (
-                        <span className="bg-primary text-white text-xs px-2 py-0.5 rounded-full">
+                        <span className="bg-primary text-white text-xs px-2 py-0.5 rounded-full badge-pulse">
                             {activeFilterCount}
                         </span>
                     )}
@@ -179,13 +170,12 @@ export function AdvancedFiltersPanel({ filters, onChange, onClear }: AdvancedFil
                 )}
             </button>
 
-            {/* Active Filter Chips */}
             {activeFilterCount > 0 && !isExpanded && (
                 <div className="px-4 pb-3 flex flex-wrap gap-2">
                     {getActiveFilters().slice(0, 5).map((filter, i) => (
                         <span
                             key={i}
-                            className="inline-flex items-center gap-1 px-2 py-1 bg-slate-100 rounded-full text-xs text-slate-600"
+                            className="inline-flex items-center gap-1 px-2 py-1 bg-white/70 rounded-full text-xs text-slate-600"
                         >
                             {filter.label}
                             <button
@@ -205,7 +195,6 @@ export function AdvancedFiltersPanel({ filters, onChange, onClear }: AdvancedFil
                 </div>
             )}
 
-            {/* Expanded Panel */}
             <AnimatePresence>
                 {isExpanded && (
                     <motion.div
@@ -213,14 +202,13 @@ export function AdvancedFiltersPanel({ filters, onChange, onClear }: AdvancedFil
                         animate={{ height: 'auto', opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
                         transition={{ duration: 0.2 }}
-                        className="border-t border-slate-200"
+                        className="border-t border-white/60"
                     >
                         <div className="p-4 space-y-6">
-                            {/* Salary Range */}
                             <div className="space-y-3">
                                 <div className="flex items-center gap-2 text-sm font-medium text-slate-700">
                                     <DollarSign className="w-4 h-4" />
-                                    Salary Range (€/year)
+                                    Salary Range (EUR per year)
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <div className="flex items-center gap-2">
@@ -231,19 +219,19 @@ export function AdvancedFiltersPanel({ filters, onChange, onClear }: AdvancedFil
                                                 ...filters,
                                                 salaryMin: e.target.value ? Number(e.target.value) : undefined
                                             })}
-                                            className="px-3 py-2 text-sm border border-slate-200 rounded-lg bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                            className="px-3 py-2 text-sm rounded-lg input-glass"
                                         >
                                             <option value="">Any</option>
-                                            <option value="20000">€20k</option>
-                                            <option value="30000">€30k</option>
-                                            <option value="40000">€40k</option>
-                                            <option value="50000">€50k</option>
-                                            <option value="60000">€60k</option>
-                                            <option value="80000">€80k</option>
-                                            <option value="100000">€100k</option>
+                                            <option value="20000">EUR 20k</option>
+                                            <option value="30000">EUR 30k</option>
+                                            <option value="40000">EUR 40k</option>
+                                            <option value="50000">EUR 50k</option>
+                                            <option value="60000">EUR 60k</option>
+                                            <option value="80000">EUR 80k</option>
+                                            <option value="100000">EUR 100k</option>
                                         </select>
                                     </div>
-                                    <span className="text-slate-400">—</span>
+                                    <span className="text-slate-400">-</span>
                                     <div className="flex items-center gap-2">
                                         <span className="text-sm text-slate-500">Max:</span>
                                         <select
@@ -252,23 +240,22 @@ export function AdvancedFiltersPanel({ filters, onChange, onClear }: AdvancedFil
                                                 ...filters,
                                                 salaryMax: e.target.value ? Number(e.target.value) : undefined
                                             })}
-                                            className="px-3 py-2 text-sm border border-slate-200 rounded-lg bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                            className="px-3 py-2 text-sm rounded-lg input-glass"
                                         >
                                             <option value="">Any</option>
-                                            <option value="30000">€30k</option>
-                                            <option value="40000">€40k</option>
-                                            <option value="50000">€50k</option>
-                                            <option value="60000">€60k</option>
-                                            <option value="80000">€80k</option>
-                                            <option value="100000">€100k</option>
-                                            <option value="150000">€150k</option>
-                                            <option value="200000">€200k+</option>
+                                            <option value="30000">EUR 30k</option>
+                                            <option value="40000">EUR 40k</option>
+                                            <option value="50000">EUR 50k</option>
+                                            <option value="60000">EUR 60k</option>
+                                            <option value="80000">EUR 80k</option>
+                                            <option value="100000">EUR 100k</option>
+                                            <option value="150000">EUR 150k</option>
+                                            <option value="200000">EUR 200k+</option>
                                         </select>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Remote Type */}
                             <div className="space-y-3">
                                 <div className="flex items-center gap-2 text-sm font-medium text-slate-700">
                                     <MapPin className="w-4 h-4" />
@@ -287,7 +274,6 @@ export function AdvancedFiltersPanel({ filters, onChange, onClear }: AdvancedFil
                                 </div>
                             </div>
 
-                            {/* Posted Within */}
                             <div className="space-y-3">
                                 <div className="flex items-center gap-2 text-sm font-medium text-slate-700">
                                     <Clock className="w-4 h-4" />
@@ -309,7 +295,6 @@ export function AdvancedFiltersPanel({ filters, onChange, onClear }: AdvancedFil
                                 </RadioGroup>
                             </div>
 
-                            {/* Experience Level */}
                             <div className="space-y-3">
                                 <div className="flex items-center gap-2 text-sm font-medium text-slate-700">
                                     <Briefcase className="w-4 h-4" />
@@ -328,7 +313,6 @@ export function AdvancedFiltersPanel({ filters, onChange, onClear }: AdvancedFil
                                 </div>
                             </div>
 
-                            {/* Industry / Category */}
                             <div className="space-y-3">
                                 <div className="flex items-center gap-2 text-sm font-medium text-slate-700">
                                     <Building2 className="w-4 h-4" />
@@ -338,7 +322,7 @@ export function AdvancedFiltersPanel({ filters, onChange, onClear }: AdvancedFil
                                     value={filters.category || ''}
                                     onValueChange={(value) => onChange({ ...filters, category: value || undefined })}
                                 >
-                                    <SelectTrigger className="w-full md:w-64">
+                                    <SelectTrigger className="w-full md:w-64 input-glass">
                                         <SelectValue placeholder="All Industries" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -351,7 +335,6 @@ export function AdvancedFiltersPanel({ filters, onChange, onClear }: AdvancedFil
                                 </Select>
                             </div>
 
-                            {/* Company Size */}
                             <div className="space-y-3">
                                 <div className="flex items-center gap-2 text-sm font-medium text-slate-700">
                                     <Users className="w-4 h-4" />
@@ -370,15 +353,14 @@ export function AdvancedFiltersPanel({ filters, onChange, onClear }: AdvancedFil
                                 </div>
                             </div>
 
-                            {/* Sort & Clear */}
-                            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pt-4 border-t border-slate-200">
+                            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pt-4 border-t border-white/60">
                                 <div className="flex items-center gap-3">
                                     <Label className="text-sm text-slate-600">Sort by:</Label>
                                     <Select
                                         value={filters.sortBy}
                                         onValueChange={(value) => onChange({ ...filters, sortBy: value })}
                                     >
-                                        <SelectTrigger className="w-40">
+                                        <SelectTrigger className="w-40 input-glass">
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -396,9 +378,9 @@ export function AdvancedFiltersPanel({ filters, onChange, onClear }: AdvancedFil
                                             ...filters,
                                             sortOrder: filters.sortOrder === 'asc' ? 'desc' : 'asc'
                                         })}
-                                        className="text-slate-500"
+                                        className="text-slate-500 button-pop"
                                     >
-                                        {filters.sortOrder === 'asc' ? '↑ Asc' : '↓ Desc'}
+                                        {filters.sortOrder === 'asc' ? 'Up' : 'Down'}
                                     </Button>
                                 </div>
                                 <Button
@@ -406,7 +388,7 @@ export function AdvancedFiltersPanel({ filters, onChange, onClear }: AdvancedFil
                                     size="sm"
                                     onClick={onClear}
                                     disabled={activeFilterCount === 0}
-                                    className="text-red-500 border-red-200 hover:bg-red-50"
+                                    className="text-red-500 border-red-200 hover:bg-red-50 button-pop"
                                 >
                                     <X className="w-4 h-4 mr-1" />
                                     Clear All

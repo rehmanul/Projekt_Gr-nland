@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useRoute, Link } from 'wouter';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Calendar, FileText, Download, Clock, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Calendar, FileText, Download, Clock, CheckCircle2, AlertTriangle, Sparkles } from 'lucide-react';
 import { getCampaignAuthHeader, requireCampaignSession } from '@/components/campaign/CampaignAuth';
 
 interface CampaignAsset {
@@ -148,11 +148,11 @@ export default function CSCampaignDetail() {
     }, [id]);
 
     if (loading) {
-        return <div className="min-h-screen flex items-center justify-center bg-gray-50">Loading...</div>;
+        return <div className="min-h-screen flex items-center justify-center aurora-bg">Loading...</div>;
     }
 
     if (!campaign) {
-        return <div className="min-h-screen flex items-center justify-center bg-gray-50">Campaign not found</div>;
+        return <div className="min-h-screen flex items-center justify-center aurora-bg">Campaign not found</div>;
     }
 
     const assets = campaign.assets.filter(a => a.assetType === 'asset');
@@ -160,13 +160,19 @@ export default function CSCampaignDetail() {
     const canMarkLive = campaign.status === 'approved' && new Date(campaign.goLiveDate).getTime() <= Date.now();
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            <header className="bg-white border-b border-gray-200">
+        <div className="min-h-screen aurora-bg relative overflow-hidden">
+            <div className="pointer-events-none absolute -top-24 left-10 h-64 w-64 rounded-full bg-primary/20 blur-3xl float-slow" />
+            <div className="pointer-events-none absolute top-20 right-10 h-72 w-72 rounded-full bg-accent/20 blur-3xl float-fast" />
+
+            <header className="bg-white/70 border-b border-white/40 backdrop-blur-xl sticky top-0 z-40">
                 <div className="max-w-5xl mx-auto px-4 py-4 flex items-center gap-3">
-                    <Link to="/cs" className="text-gray-600 hover:text-gray-800">
+                    <Link to="/cs" className="text-slate-600 hover:text-slate-900">
                         <ArrowLeft className="w-5 h-5" />
                     </Link>
-                    <h1 className="text-xl font-bold text-gray-900">Campaign Detail</h1>
+                    <div>
+                        <h1 className="text-xl font-bold text-slate-900">Campaign Detail</h1>
+                        <p className="text-xs text-slate-500">Stay close to the timeline</p>
+                    </div>
                 </div>
             </header>
 
@@ -174,16 +180,16 @@ export default function CSCampaignDetail() {
                 <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-white rounded-2xl shadow-lg p-6"
+                    className="glass rounded-2xl shadow-lg p-6 hover-glow"
                 >
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                         <div>
-                            <h2 className="text-2xl font-bold text-gray-900">{campaign.customerName}</h2>
-                            <p className="text-gray-600">{campaign.customerEmail}</p>
-                            <p className="text-sm text-gray-500">{campaign.campaignType}</p>
+                            <h2 className="text-2xl font-bold text-slate-900">{campaign.customerName}</h2>
+                            <p className="text-slate-600">{campaign.customerEmail}</p>
+                            <p className="text-sm text-slate-500">{campaign.campaignType}</p>
                         </div>
                         <div className="flex items-center gap-3">
-                            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary">
                                 {campaign.status === 'approved' || campaign.status === 'live' ? (
                                     <CheckCircle2 className="w-4 h-4" />
                                 ) : campaign.isOverdue ? (
@@ -197,7 +203,7 @@ export default function CSCampaignDetail() {
                                 <button
                                     onClick={handleMarkLive}
                                     disabled={markingLive}
-                                    className="px-4 py-2 text-sm font-medium rounded-lg bg-green-600 text-white hover:bg-green-700 disabled:opacity-60"
+                                    className="px-4 py-2 text-sm font-medium rounded-xl text-white bg-gradient-to-r from-emerald-500 to-lime-500 shadow-md button-pop disabled:opacity-60"
                                 >
                                     {markingLive ? 'Marking Live...' : 'Mark Live'}
                                 </button>
@@ -207,7 +213,7 @@ export default function CSCampaignDetail() {
                     {markLiveError && (
                         <p className="mt-3 text-sm text-red-600">{markLiveError}</p>
                     )}
-                    <div className="flex flex-col md:flex-row gap-4 text-sm text-gray-600 mt-4">
+                    <div className="flex flex-col md:flex-row gap-4 text-sm text-slate-600 mt-4">
                         <div className="flex items-center gap-2">
                             <Calendar className="w-4 h-4" />
                             <span>Asset deadline: {new Date(campaign.assetDeadline).toLocaleDateString()}</span>
@@ -223,19 +229,19 @@ export default function CSCampaignDetail() {
                     <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="bg-white rounded-2xl shadow-lg p-6"
+                        className="glass rounded-2xl shadow-lg p-6 hover-glow"
                     >
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Customer Assets</h3>
+                        <h3 className="text-lg font-semibold text-slate-900 mb-4">Customer Assets</h3>
                         <div className="space-y-2">
                             {assets.map((asset) => (
-                                <div key={asset.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                <div key={asset.id} className="flex items-center justify-between p-3 bg-white/70 rounded-lg hover-lift">
                                     <div className="flex items-center gap-3">
-                                        <FileText className="w-5 h-5 text-gray-400" />
+                                        <FileText className="w-5 h-5 text-slate-400" />
                                         <span>{asset.filename}</span>
                                     </div>
                                     <button
                                         onClick={() => handleDownload(asset)}
-                                        className="flex items-center gap-1 text-blue-600 hover:text-blue-800"
+                                        className="flex items-center gap-1 text-primary hover:text-slate-900"
                                     >
                                         <Download className="w-4 h-4" />
                                         Download
@@ -250,19 +256,19 @@ export default function CSCampaignDetail() {
                     <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="bg-white rounded-2xl shadow-lg p-6"
+                        className="glass rounded-2xl shadow-lg p-6 hover-glow"
                     >
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Drafts</h3>
+                        <h3 className="text-lg font-semibold text-slate-900 mb-4">Drafts</h3>
                         <div className="space-y-2">
                             {drafts.map((draft) => (
-                                <div key={draft.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                <div key={draft.id} className="flex items-center justify-between p-3 bg-white/70 rounded-lg hover-lift">
                                     <div className="flex items-center gap-3">
-                                        <FileText className="w-5 h-5 text-gray-400" />
+                                        <FileText className="w-5 h-5 text-slate-400" />
                                         <span>{draft.filename}</span>
                                     </div>
                                     <button
                                         onClick={() => handleDownload(draft)}
-                                        className="flex items-center gap-1 text-blue-600 hover:text-blue-800"
+                                        className="flex items-center gap-1 text-primary hover:text-slate-900"
                                     >
                                         <Download className="w-4 h-4" />
                                         Download
@@ -276,24 +282,27 @@ export default function CSCampaignDetail() {
                 <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-white rounded-2xl shadow-lg p-6"
+                    className="glass rounded-2xl shadow-lg p-6 hover-glow"
                 >
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Activity Timeline</h3>
+                    <div className="flex items-center gap-2 mb-4">
+                        <Sparkles className="w-4 h-4 text-primary" />
+                        <h3 className="text-lg font-semibold text-slate-900">Activity Timeline</h3>
+                    </div>
                     <div className="space-y-4">
                         {campaign.activities.map((activity, i) => (
                             <div key={activity.id} className="flex gap-4">
                                 <div className="flex flex-col items-center">
-                                    <div className="w-3 h-3 bg-blue-600 rounded-full" />
+                                    <div className="w-3 h-3 bg-primary rounded-full" />
                                     {i < campaign.activities.length - 1 && (
-                                        <div className="w-0.5 h-full bg-gray-200 mt-1" />
+                                        <div className="w-0.5 h-full bg-white/60 mt-1" />
                                     )}
                                 </div>
                                 <div className="flex-1 pb-4">
-                                    <p className="text-gray-700 font-medium">
+                                    <p className="text-slate-700 font-medium">
                                         {activity.action.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                                     </p>
-                                    <p className="text-sm text-gray-500">
-                                        {activity.actorType} • {new Date(activity.createdAt).toLocaleString()}
+                                    <p className="text-sm text-slate-500">
+                                        {activity.actorType} · {new Date(activity.createdAt).toLocaleString()}
                                     </p>
                                 </div>
                             </div>
