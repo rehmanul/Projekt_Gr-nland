@@ -47,6 +47,8 @@ const envSchema = z.object({
   REMINDER_DRAFT_DAYS: z.string().optional(),
   REMINDER_ESCALATE_AFTER_DAYS: z.string().optional(),
   ADMIN_API_KEY: z.string().optional(),
+  CS_LOGIN_PASSWORD: z.string().optional(),
+  CS_ALLOWED_EMAILS: z.string().optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);
@@ -197,4 +199,10 @@ export const config = {
       : 1,
   },
   adminApiKey: env.ADMIN_API_KEY ?? "",
+  csAuth: {
+    password: (env.CS_LOGIN_PASSWORD ?? "").trim(),
+    allowedEmails: env.CS_ALLOWED_EMAILS
+      ? env.CS_ALLOWED_EMAILS.split(",").map((email) => email.trim()).filter(Boolean)
+      : [],
+  },
 } as const;

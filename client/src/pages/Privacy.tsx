@@ -1,56 +1,62 @@
 import { useTenant } from "@/hooks/use-tenant";
 
+function getDisplayName(name?: string) {
+  if (!name || /gr[öo]nland|projekt/i.test(name)) {
+    return "Campaign Approval Portal";
+  }
+  return name;
+}
+
 export default function Privacy() {
   const { data: tenant } = useTenant();
+  const brandName = getDisplayName(tenant?.name);
 
   return (
     <div className="min-h-screen bg-slate-50 py-16">
       <div className="container mx-auto px-4 max-w-3xl">
         <h1 className="text-4xl font-display font-bold text-slate-900 mb-4">Privacy Policy</h1>
-        <p className="text-slate-600 mb-12">
-          Datenschutzerklärung – Information on the processing of your data (GDPR).
-        </p>
+        <p className="text-slate-600 mb-12">Information on how we process personal data under GDPR.</p>
 
         <div className="prose prose-slate max-w-none space-y-8 text-slate-600">
           <section>
             <h2 className="text-xl font-bold text-slate-900">1. Controller</h2>
             <p>
-              The controller for the processing of your personal data in connection with this website is {tenant?.name || "Projekt Grönland"}, Karlsruhe, Germany. Contact: support@{tenant?.domain?.replace("www.", "") || "example.com"}.
+              The controller for the processing of your personal data in connection with this website is{" "}
+              {brandName}, Karlsruhe, Germany. Contact: support@
+              {tenant?.domain?.replace("www.", "") || "example.com"}.
             </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-bold text-slate-900">2. Data we collect</h2>
+            <h2 className="text-xl font-bold text-slate-900">2. Data We Collect</h2>
             <p>
-              When you use our job portal we may process: (a) account and profile data you provide; (b) application data (name, email, CV, cover letter) when you apply for jobs; (c) usage data (IP address, browser, pages visited) for technical and security purposes; (d) cookies and similar technologies for session and preferences.
+              We may process account details, campaign and application data, technical usage logs, and
+              cookie/session information required to operate the platform securely.
             </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-bold text-slate-900">3. Purposes and legal basis</h2>
+            <h2 className="text-xl font-bold text-slate-900">3. Purpose and Legal Basis</h2>
             <p>
-              We process your data to operate the portal, match candidates with employers, process applications, improve our services, and comply with legal obligations. Legal bases include contract performance (Art. 6(1)(b) GDPR), consent (Art. 6(1)(a) GDPR), and legitimate interests (Art. 6(1)(f) GDPR).
+              We process data to provide platform features, run campaign workflows, improve service quality,
+              and comply with legal obligations. Legal bases include contract performance, consent, and
+              legitimate interest under GDPR Article 6.
             </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-bold text-slate-900">4. Sharing and retention</h2>
+            <h2 className="text-xl font-bold text-slate-900">4. Sharing and Retention</h2>
             <p>
-              Application data is shared with the employer for the position you apply to. We do not sell your data. Data is retained as long as necessary for the purposes above or as required by law; application data may be retained for the duration of the hiring process and for a limited period thereafter for legal claims.
+              We share data only with involved parties (CS, customer, agency) and infrastructure providers
+              needed to deliver the service. We retain data only as long as operationally and legally needed.
             </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-bold text-slate-900">5. Your rights</h2>
+            <h2 className="text-xl font-bold text-slate-900">5. Your Rights</h2>
             <p>
-              You have the right to access, rectify, erase, restrict processing, data portability, and to object. Where processing is based on consent, you may withdraw it at any time. You may lodge a complaint with a supervisory authority.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-bold text-slate-900">6. Updates</h2>
-            <p>
-              We may update this policy from time to time. The current version is always available on this page. Last update: {new Date().toLocaleDateString("en-GB")}.
+              You can request access, rectification, deletion, portability, restriction, and objection where
+              applicable. You may also file a complaint with a supervisory authority.
             </p>
           </section>
         </div>

@@ -11,6 +11,7 @@ import { migrations as embeddedMigrations } from "./migrations";
 import { sendTestEmail } from "./email";
 import { createMagicLink, buildMagicLinkUrl } from "./auth";
 import * as campaignStorage from "./campaign-storage";
+import { emailsMatch, normalizeEmailAddress } from "./email-normalization";
 
 const router = Router();
 
@@ -87,10 +88,11 @@ router.post("/admin/bootstrap", async (req: Request, res: Response) => {
       createdTenant = true;
     }
 
+    const ownerEmail = normalizeEmailAddress(input.owner.email);
     let [owner] = await db
       .select()
       .from(users)
-      .where(and(eq(users.tenantId, tenant.id), eq(users.email, input.owner.email)));
+      .where(and(eq(users.tenantId, tenant.id), eq(users.email, ownerEmail)));
 
     let createdOwner = false;
     if (!owner) {
@@ -99,7 +101,7 @@ router.post("/admin/bootstrap", async (req: Request, res: Response) => {
         .insert(users)
         .values({
           tenantId: tenant.id,
-          email: input.owner.email,
+          email: ownerEmail,
           passwordHash,
           role: "employer",
           firstName: input.owner.firstName ?? null,
@@ -179,10 +181,11 @@ router.post("/admin/employers", async (req: Request, res: Response) => {
       return res.status(404).json({ message: "Tenant not found for domain" });
     }
 
+    const ownerEmail = normalizeEmailAddress(input.owner.email);
     let [owner] = await db
       .select()
       .from(users)
-      .where(and(eq(users.tenantId, tenant.id), eq(users.email, input.owner.email)));
+      .where(and(eq(users.tenantId, tenant.id), eq(users.email, ownerEmail)));
 
     if (!owner) {
       const passwordHash = crypto.randomBytes(32).toString("hex");
@@ -190,7 +193,7 @@ router.post("/admin/employers", async (req: Request, res: Response) => {
         .insert(users)
         .values({
           tenantId: tenant.id,
-          email: input.owner.email,
+          email: ownerEmail,
           passwordHash,
           role: "employer",
           firstName: input.owner.firstName ?? null,
@@ -246,10 +249,11 @@ router.post("/admin/cs-users", async (req: Request, res: Response) => {
       return res.status(404).json({ message: "Tenant not found for domain" });
     }
 
+    const csEmail = normalizeEmailAddress(input.email);
     const [existingUser] = await db
       .select()
       .from(users)
-      .where(and(eq(users.tenantId, tenant.id), eq(users.email, input.email)));
+      .where(and(eq(users.tenantId, tenant.id), eq(users.email, csEmail)));
 
     if (existingUser) {
       return res.status(409).json({ message: "User already exists for tenant" });
@@ -260,7 +264,7 @@ router.post("/admin/cs-users", async (req: Request, res: Response) => {
       .insert(users)
       .values({
         tenantId: tenant.id,
-        email: input.email,
+        email: csEmail,
         passwordHash,
         role: input.role ?? "cs",
         firstName: input.firstName ?? null,
@@ -383,24 +387,36 @@ router.post("/admin/request-magic-link", async (req: Request, res: Response) => 
       return res.status(404).json({ message: "Tenant not found for domain" });
     }
 
+    const requestedEmail = normalizeEmailAddress(input.email);
     let resolvedCampaignId = input.campaignId;
     let eligible = false;
+    let authEmail = requestedEmail;
 
     if (input.portalType === "cs") {
-      const csUser = await campaignStorage.getCsUserByEmail(tenant.id, input.email);
+      const csUser = await campaignStorage.getCsUserByEmail(tenant.id, requestedEmail);
       eligible = !!csUser && csUser.isActive;
+      if (csUser) {
+        authEmail = csUser.email;
+      }
     } else if (input.portalType === "agency") {
-      const agency = await campaignStorage.getAgencyByEmail(tenant.id, input.email);
+      const agency = await campaignStorage.getAgencyByEmail(tenant.id, requestedEmail);
       eligible = !!agency && agency.isActive;
+      if (agency) {
+        authEmail = agency.email;
+      }
     } else {
       if (resolvedCampaignId) {
         const campaign = await campaignStorage.getCampaign(tenant.id, resolvedCampaignId);
-        eligible = !!campaign && campaign.customerEmail === input.email;
+        eligible = !!campaign && emailsMatch(campaign.customerEmail, requestedEmail);
+        if (campaign) {
+          authEmail = campaign.customerEmail;
+        }
       } else {
-        const campaigns = await campaignStorage.getCampaignByCustomerEmail(tenant.id, input.email);
+        const campaigns = await campaignStorage.getCampaignByCustomerEmail(tenant.id, requestedEmail);
         if (campaigns.length > 0) {
           eligible = true;
           resolvedCampaignId = campaigns[0].id;
+          authEmail = campaigns[0].customerEmail;
         }
       }
     }
@@ -409,10 +425,10 @@ router.post("/admin/request-magic-link", async (req: Request, res: Response) => 
       return res.status(400).json({ message: "User is not eligible for magic link" });
     }
 
-    const token = await createMagicLink(tenant.id, input.email, input.portalType, resolvedCampaignId);
+    const token = await createMagicLink(tenant.id, authEmail, input.portalType, resolvedCampaignId);
     const loginUrl = buildMagicLinkUrl(config.baseUrl, token, input.portalType, resolvedCampaignId);
 
-    await sendTestEmail(input.email, `Magic link test (${input.portalType})`);
+    await sendTestEmail(requestedEmail, `Magic link test (${input.portalType})`);
 
     res.json({ message: "Magic link created", token, loginUrl });
   } catch (err) {

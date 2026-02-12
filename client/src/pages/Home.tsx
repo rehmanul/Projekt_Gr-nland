@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { JobCard } from "@/components/JobCard";
 import { Search, MapPin, ArrowRight, Sparkles, TrendingUp, ShieldCheck, Zap, Briefcase, Users, FileText, Layers, CheckCircle2 } from "lucide-react";
 import { useMemo, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
 
 const heroBadges = ["Remote-ready", "Fast apply", "Top companies", "Verified listings"];
 
@@ -22,6 +22,9 @@ export default function Home() {
 
   const jobsList = jobs ?? [];
   const employersList = employers ?? [];
+  const { scrollY } = useScroll();
+  const statsY = useTransform(scrollY, [0, 1200], [0, 160]);
+  const ctaY = useTransform(scrollY, [400, 1800], [0, 140]);
 
   const jobCounts = useMemo(() => {
     const counts = new Map<number, number>();
@@ -179,9 +182,9 @@ export default function Home() {
       </section>
 
       <section className="relative py-16 lg:py-20 overflow-hidden">
-        <div
+        <motion.div
           className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: "url('/images/stats-bg.jpg')" }}
+          style={{ backgroundImage: "url('/images/stats-bg.jpg')", y: statsY }}
         />
         <div className="absolute inset-0 bg-slate-900/70" />
         <div className="relative container mx-auto px-4 text-white">
@@ -192,7 +195,7 @@ export default function Home() {
             </div>
             <h2 className="text-3xl md:text-4xl font-display font-bold mt-3">Key facts and figures</h2>
             <p className="text-white/70 mt-3">
-              Real-time signals from employers and candidates using Projekt Gronland right now.
+              Real-time signals from employers and candidates using Campaign Approval Portal right now.
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
@@ -296,7 +299,7 @@ export default function Home() {
           <div className="text-center max-w-2xl mx-auto mb-10">
             <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-primary">
               <ShieldCheck className="h-4 w-4" />
-              Why Projekt Gronland
+              Why Campaign Approval Portal
             </div>
             <h2 className="text-3xl md:text-4xl font-display font-bold text-slate-900 mt-3">Built for fast, local hiring</h2>
             <p className="text-slate-600 mt-3">
@@ -337,7 +340,7 @@ export default function Home() {
               <Briefcase className="h-4 w-4" />
               Employer spotlight
             </div>
-            <h2 className="text-3xl md:text-4xl font-display font-bold text-slate-900 mt-3">Teams hiring on Projekt Gronland</h2>
+            <h2 className="text-3xl md:text-4xl font-display font-bold text-slate-900 mt-3">Teams hiring on Campaign Approval Portal</h2>
             <p className="text-slate-600 mt-3">
               Real companies currently active on the platform. As more employers join, this wall keeps growing.
             </p>
@@ -390,9 +393,9 @@ export default function Home() {
       </section>
 
       <section className="relative py-16 lg:py-20 overflow-hidden">
-        <div
+        <motion.div
           className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: "url('/images/cta-bg.jpg')" }}
+          style={{ backgroundImage: "url('/images/cta-bg.jpg')", y: ctaY }}
         />
         <div className="absolute inset-0 bg-slate-900/70" />
         <div className="relative container mx-auto px-4 text-white">
@@ -423,3 +426,4 @@ export default function Home() {
     </div>
   );
 }
+

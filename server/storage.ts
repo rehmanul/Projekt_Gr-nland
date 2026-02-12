@@ -265,8 +265,7 @@ export class DatabaseStorage implements IStorage {
 
 export async function initStorage(): Promise<IStorage> {
   const pool = getPool();
-  const poolQuery = (pool as typeof pool | undefined)?.query;
-  if (typeof poolQuery !== "function") {
+  if (!pool || typeof (pool as { query?: unknown }).query !== "function") {
     const poolType = pool ? typeof pool : "undefined";
     const poolName = pool && typeof pool === "object" && "constructor" in pool
       ? (pool as any).constructor?.name ?? "unknown"
@@ -276,7 +275,7 @@ export async function initStorage(): Promise<IStorage> {
       `Database pool is not initialized (type=${poolType}, ctor=${poolName}, keys=${poolKeys.join(",")})`,
     );
   }
-  await poolQuery.call(pool, "SELECT 1");
+  await pool.query("SELECT 1");
   return new DatabaseStorage();
 }
 

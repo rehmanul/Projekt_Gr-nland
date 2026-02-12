@@ -20,6 +20,7 @@ import {
     type User,
 } from "@shared/schema";
 import { eq, and, desc, inArray } from "drizzle-orm";
+import { emailsMatch, normalizeEmailAddress } from "./email-normalization";
 
 // === AGENCY OPERATIONS ===
 
@@ -39,11 +40,9 @@ export async function getAgency(tenantId: number, id: number): Promise<Agency | 
 
 export async function getAgencyByEmail(tenantId: number, email: string): Promise<Agency | undefined> {
     if (!db) throw new Error("Database not available");
-    const [agency] = await db
-        .select()
-        .from(agencies)
-        .where(and(eq(agencies.tenantId, tenantId), eq(agencies.email, email)));
-    return agency;
+    const normalizedEmail = normalizeEmailAddress(email);
+    const allAgencies = await db.select().from(agencies).where(eq(agencies.tenantId, tenantId));
+    return allAgencies.find((agency) => emailsMatch(agency.email, normalizedEmail));
 }
 
 export async function createAgency(data: InsertAgency): Promise<Agency> {
@@ -58,11 +57,12 @@ const CS_ROLES = ["cs", "admin"] as const;
 
 export async function getCsUserByEmail(tenantId: number, email: string): Promise<User | undefined> {
     if (!db) throw new Error("Database not available");
-    const [user] = await db
+    const normalizedEmail = normalizeEmailAddress(email);
+    const csUsers = await db
         .select()
         .from(users)
-        .where(and(eq(users.tenantId, tenantId), eq(users.email, email), inArray(users.role, CS_ROLES as any)));
-    return user;
+        .where(and(eq(users.tenantId, tenantId), inArray(users.role, CS_ROLES as any)));
+    return csUsers.find((user) => emailsMatch(user.email, normalizedEmail));
 }
 
 export async function getCsUserById(tenantId: number, id: number): Promise<User | undefined> {
@@ -114,11 +114,14 @@ export async function getCampaignByCustomerEmail(
     customerEmail: string
 ): Promise<Campaign[]> {
     if (!db) throw new Error("Database not available");
-    return db
+    const normalizedEmail = normalizeEmailAddress(customerEmail);
+    const tenantCampaigns = await db
         .select()
         .from(campaigns)
-        .where(and(eq(campaigns.tenantId, tenantId), eq(campaigns.customerEmail, customerEmail)))
+        .where(eq(campaigns.tenantId, tenantId))
         .orderBy(desc(campaigns.createdAt));
+
+    return tenantCampaigns.filter((campaign) => emailsMatch(campaign.customerEmail, normalizedEmail));
 }
 
 export async function getCampaignsByAgencyId(

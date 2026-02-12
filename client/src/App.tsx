@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -6,7 +6,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Layout } from "@/components/Layout";
 import ScrollToTop from "@/components/ScrollToTop";
 
-import Home from "@/pages/Home";
 import JobSearch from "@/pages/JobSearch";
 import JobDetails from "@/pages/JobDetails";
 import Employers from "@/pages/Employers";
@@ -29,7 +28,18 @@ import CustomerPortal from "@/pages/campaign/CustomerPortal";
 import CustomerDashboard from "@/pages/campaign/CustomerDashboard";
 import AgencyPortal from "@/pages/campaign/AgencyPortal";
 import AgencyDashboard from "@/pages/campaign/AgencyDashboard";
-import { MagicLinkRequest, MagicLinkVerify } from "@/components/campaign/CampaignAuth";
+import { CSLogin, MagicLinkRequest, MagicLinkVerify } from "@/components/campaign/CampaignAuth";
+import { useEffect } from "react";
+
+function RedirectToCSLogin() {
+  const [, setLocation] = useLocation();
+
+  useEffect(() => {
+    setLocation("/cs/login");
+  }, [setLocation]);
+
+  return null;
+}
 
 function Router() {
   return (
@@ -37,8 +47,7 @@ function Router() {
       <ScrollToTop />
       <Switch>
         {/* Campaign Portal Routes (no main layout) */}
-        <Route path="/cs/login" component={() => <MagicLinkRequest portalType="cs" />} />
-        <Route path="/cs/auth/verify" component={() => <MagicLinkVerify portalType="cs" />} />
+        <Route path="/cs/login" component={CSLogin} />
         <Route path="/cs/campaigns/new" component={CampaignCreate} />
         <Route path="/cs/campaigns/:id" component={CSCampaignDetail} />
         <Route path="/cs" component={CSDashboard} />
@@ -54,13 +63,7 @@ function Router() {
         <Route path="/agency" component={AgencyDashboard} />
 
         {/* Main Site Routes (with layout) */}
-        <Route path="/">
-          {() => (
-            <Layout>
-              <Home />
-            </Layout>
-          )}
-        </Route>
+        <Route path="/" component={RedirectToCSLogin} />
         <Route path="/jobs">
           {() => (
             <Layout>

@@ -23,6 +23,7 @@ import { buildCampaignObjectKey, uploadFileToObjectStorage, getSignedDownloadUrl
 import { broadcastCampaignEvent } from "./realtime";
 import type { Tenant, CampaignAsset } from "@shared/schema";
 import type { AuthUser } from "./auth";
+import { emailsMatch, normalizeEmailAddress } from "./email-normalization";
 
 const router = Router();
 
@@ -141,46 +142,111 @@ const upload = multer({
 
 // === AUTH ROUTES ===
 
+const csLoginSchema = z.object({
+    email: z.string().email(),
+    password: z.string().min(1),
+});
+
 const requestMagicLinkSchema = z.object({
     email: z.string().email(),
-    portalType: z.enum(["cs", "customer", "agency"]),
+    portalType: z.enum(["customer", "agency"]),
     campaignId: z.coerce.number().optional(),
+});
+
+router.post("/auth/cs-login", authLimiter, async (req: Request, res: Response) => {
+    try {
+        const tenant = (req as any).tenant as Tenant;
+        const input = csLoginSchema.parse(req.body);
+        const email = normalizeEmailAddress(input.email);
+
+        if (!config.csAuth.password) {
+            return res.status(503).json({ message: "CS login is not configured" });
+        }
+
+        const csUser = await campaignStorage.getCsUserByEmail(tenant.id, email);
+        if (!csUser || !csUser.isActive) {
+            return res.status(401).json({ message: "Invalid credentials" });
+        }
+
+        if (config.csAuth.allowedEmails.length > 0) {
+            const allowed = config.csAuth.allowedEmails.some((allowedEmail) => emailsMatch(allowedEmail, email));
+            if (!allowed) {
+                return res.status(403).json({ message: "Email is not authorized for CS dashboard access" });
+            }
+        }
+
+        if (input.password !== config.csAuth.password) {
+            return res.status(401).json({ message: "Invalid credentials" });
+        }
+
+        const user: AuthUser = {
+            email: csUser.email,
+            tenantId: tenant.id,
+            portalType: "cs",
+        };
+        const jwtToken = generateJWT(user);
+        res.cookie(AUTH_COOKIE_NAME, jwtToken, {
+            httpOnly: true,
+            secure: config.nodeEnv === "production",
+            sameSite: "lax",
+            maxAge: config.jwtExpiryDays * 24 * 60 * 60 * 1000,
+            path: "/",
+        });
+
+        res.json({ user });
+    } catch (err) {
+        if (err instanceof z.ZodError) {
+            return res.status(400).json({ message: err.errors[0].message });
+        }
+        console.error("CS login error:", err);
+        res.status(500).json({ message: "Failed to log in" });
+    }
 });
 
 router.post("/auth/request-magic-link", authLimiter, async (req: Request, res: Response) => {
     try {
         const tenant = (req as any).tenant as Tenant;
         const input = requestMagicLinkSchema.parse(req.body);
+        const requestedEmail = normalizeEmailAddress(input.email);
         let resolvedCampaignId = input.campaignId;
         let eligible = false;
+        let authEmail = requestedEmail;
 
-        if (input.portalType === "cs") {
-            const csUser = await campaignStorage.getCsUserByEmail(tenant.id, input.email);
-            eligible = !!csUser && csUser.isActive;
-        } else if (input.portalType === "agency") {
-            const agency = await campaignStorage.getAgencyByEmail(tenant.id, input.email);
+        if (input.portalType === "agency") {
+            const agency = await campaignStorage.getAgencyByEmail(tenant.id, requestedEmail);
             eligible = !!agency && agency.isActive;
+            if (agency) {
+                authEmail = agency.email;
+            }
         } else {
             if (resolvedCampaignId) {
                 const campaign = await campaignStorage.getCampaign(tenant.id, resolvedCampaignId);
-                eligible = !!campaign && campaign.customerEmail === input.email;
+                eligible = !!campaign && emailsMatch(campaign.customerEmail, requestedEmail);
+                if (campaign) {
+                    authEmail = campaign.customerEmail;
+                }
             } else {
-                const campaigns = await campaignStorage.getCampaignByCustomerEmail(tenant.id, input.email);
+                const campaigns = await campaignStorage.getCampaignByCustomerEmail(tenant.id, requestedEmail);
                 if (campaigns.length > 0) {
                     eligible = true;
                     resolvedCampaignId = campaigns[0].id;
+                    authEmail = campaigns[0].customerEmail;
                 }
             }
         }
 
         if (eligible) {
-            const token = await createMagicLink(tenant.id, input.email, input.portalType, resolvedCampaignId);
+            const token = await createMagicLink(tenant.id, authEmail, input.portalType, resolvedCampaignId);
             const baseUrl = getBaseUrlFromRequest(req);
             const loginUrl = buildMagicLinkUrl(baseUrl, token, input.portalType, resolvedCampaignId);
-            await email.sendMagicLinkEmail(input.email, input.portalType, loginUrl);
+            await email.sendMagicLinkEmail(requestedEmail, input.portalType, loginUrl);
+            return res.json({ message: "Login link sent. Check your inbox.", sent: true });
         }
 
-        res.json({ message: "If your email is registered, you will receive a login link shortly." });
+        res.status(404).json({
+            message: "No invitation found for this email. Ask CS to create the campaign or agency access first.",
+            sent: false,
+        });
     } catch (err) {
         if (err instanceof z.ZodError) {
             return res.status(400).json({ message: err.errors[0].message });
@@ -202,10 +268,7 @@ router.get("/auth/verify/:token", async (req: Request, res: Response) => {
         }
 
         if (user.portalType === "cs") {
-            const csUser = await campaignStorage.getCsUserByEmail(tenant.id, user.email);
-            if (!csUser || !csUser.isActive) {
-                return res.status(401).json({ message: "Invalid or expired magic link" });
-            }
+            return res.status(403).json({ message: "CS dashboard requires password login" });
         }
         if (user.portalType === "agency") {
             const agency = await campaignStorage.getAgencyByEmail(tenant.id, user.email);
@@ -216,7 +279,7 @@ router.get("/auth/verify/:token", async (req: Request, res: Response) => {
         if (user.portalType === "customer") {
             if (user.campaignId) {
                 const campaign = await campaignStorage.getCampaign(tenant.id, user.campaignId);
-                if (!campaign || campaign.customerEmail !== user.email) {
+                if (!campaign || !emailsMatch(campaign.customerEmail, user.email)) {
                     return res.status(401).json({ message: "Invalid or expired magic link" });
                 }
             } else {
@@ -270,7 +333,7 @@ router.get("/auth/session", async (req: Request, res: Response) => {
         if (user.portalType === "customer") {
             if (user.campaignId) {
                 const campaign = await campaignStorage.getCampaign(tenant.id, user.campaignId);
-                if (!campaign || campaign.customerEmail !== user.email) {
+                if (!campaign || !emailsMatch(campaign.customerEmail, user.email)) {
                     return res.status(401).json({ message: "Invalid session" });
                 }
             } else {
@@ -339,6 +402,7 @@ router.post("/cs/campaigns", requireAuth(["cs"]), async (req: Request, res: Resp
         const user = getTenantUser(req, res, tenant);
         if (!user) return;
         const input = createCampaignSchema.parse(req.body);
+        const normalizedCustomerEmail = normalizeEmailAddress(input.customerEmail);
 
         const csUser = await campaignStorage.getCsUserByEmail(tenant.id, user.email);
         if (!csUser || !csUser.isActive) {
@@ -354,7 +418,7 @@ router.post("/cs/campaigns", requireAuth(["cs"]), async (req: Request, res: Resp
         const campaign = await campaignStorage.createCampaign({
             tenantId: tenant.id,
             customerName: input.customerName,
-            customerEmail: input.customerEmail,
+            customerEmail: normalizedCustomerEmail,
             campaignType: input.campaignType,
             agencyId: input.agencyId,
             csUserId,
@@ -373,7 +437,7 @@ router.post("/cs/campaigns", requireAuth(["cs"]), async (req: Request, res: Resp
         });
 
         // Send email to customer
-        await email.sendCampaignCreatedEmail(campaign, input.customerEmail);
+        await email.sendCampaignCreatedEmail(campaign, normalizedCustomerEmail);
 
         broadcastCampaignEvent({
             tenantId: tenant.id,
@@ -478,7 +542,7 @@ router.post("/cs/agencies", requireAuth(["cs"]), async (req: Request, res: Respo
         const agency = await campaignStorage.createAgency({
             tenantId: tenant.id,
             name: input.name,
-            email: input.email,
+            email: normalizeEmailAddress(input.email),
             contactName: input.contactName ?? null,
             isActive: true,
         });
@@ -500,7 +564,7 @@ router.get("/customer/campaign/:id", requireAuth(["customer"]), async (req: Requ
         if (!user) return;
         const campaign = await campaignStorage.getCampaign(tenant.id, Number(req.params.id));
 
-        if (!campaign || campaign.customerEmail !== user.email) {
+        if (!campaign || !emailsMatch(campaign.customerEmail, user.email)) {
             return res.status(404).json({ message: "Campaign not found" });
         }
 
@@ -536,7 +600,7 @@ router.post(
             if (!user) return;
             const campaign = await campaignStorage.getCampaign(tenant.id, Number(req.params.id));
 
-            if (!campaign || campaign.customerEmail !== user.email) {
+            if (!campaign || !emailsMatch(campaign.customerEmail, user.email)) {
                 return res.status(404).json({ message: "Campaign not found" });
             }
 
@@ -592,7 +656,7 @@ router.post("/customer/campaign/:id/approve", requireAuth(["customer"]), async (
         if (!user) return;
         const campaign = await campaignStorage.getCampaign(tenant.id, Number(req.params.id));
 
-        if (!campaign || campaign.customerEmail !== user.email) {
+        if (!campaign || !emailsMatch(campaign.customerEmail, user.email)) {
             return res.status(404).json({ message: "Campaign not found" });
         }
 
@@ -644,7 +708,7 @@ router.post("/customer/campaign/:id/request-changes", requireAuth(["customer"]),
         const input = requestChangesSchema.parse(req.body);
         const campaign = await campaignStorage.getCampaign(tenant.id, Number(req.params.id));
 
-        if (!campaign || campaign.customerEmail !== user.email) {
+        if (!campaign || !emailsMatch(campaign.customerEmail, user.email)) {
             return res.status(404).json({ message: "Campaign not found" });
         }
 
@@ -885,7 +949,7 @@ router.get("/campaign/:id/assets/:assetId/download", requireAuth(), async (req: 
             return res.status(404).json({ message: "Campaign not found" });
         }
 
-        if (user.portalType === "customer" && campaign.customerEmail !== user.email) {
+        if (user.portalType === "customer" && !emailsMatch(campaign.customerEmail, user.email)) {
             return res.status(403).json({ message: "Not authorized" });
         }
 
@@ -920,7 +984,7 @@ router.post("/customer/campaign/:id/start-review", requireAuth(["customer"]), as
         if (!user) return;
 
         const campaign = await campaignStorage.getCampaign(tenant.id, Number(req.params.id));
-        if (!campaign || campaign.customerEmail !== user.email) {
+        if (!campaign || !emailsMatch(campaign.customerEmail, user.email)) {
             return res.status(404).json({ message: "Campaign not found" });
         }
 
@@ -1013,3 +1077,4 @@ router.get("/campaign/:id/timeline", requireAuth(), async (req: Request, res: Re
 });
 
 export default router;
+

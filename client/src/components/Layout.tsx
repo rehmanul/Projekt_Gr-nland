@@ -1,14 +1,30 @@
 import { Link, useLocation } from "wouter";
 import { useTenant } from "@/hooks/use-tenant";
 import { Button } from "@/components/ui/button";
-import { Menu, Briefcase } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Menu, Briefcase, Globe } from "lucide-react";
 import { useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+
+function getTenantDisplayName(name?: string) {
+  if (!name || /gronland|projekt/i.test(name.toLowerCase())) {
+    return "Campaign Approval Portal";
+  }
+  return name;
+}
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const { data: tenant } = useTenant();
   const [location] = useLocation();
   const [isOpen, setIsOpen] = useState(false);
+  const tenantName = getTenantDisplayName(tenant?.name);
 
   const navItems = [
     { href: "/jobs", label: "Find Jobs" },
@@ -29,19 +45,19 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-sky-500 flex items-center justify-center shadow-md">
                 <Briefcase className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold font-display tracking-tight text-slate-900">
-                {tenant?.name || "Projekt Gronland"}
-              </span>
+              <span className="text-xl font-bold font-display tracking-tight text-slate-900">{tenantName}</span>
             </Link>
 
             <nav className="hidden md:flex items-center gap-1">
               {navItems.map((item) => (
                 <Link key={item.href} href={item.href}>
-                  <a className={`text-sm font-medium px-4 py-2 rounded-full transition-colors ${
-                    location.startsWith(item.href) 
-                      ? "bg-primary/15 text-primary" 
-                      : "text-slate-600 hover:text-slate-900 hover:bg-white/70"
-                  }`}>
+                  <a
+                    className={`text-sm font-medium px-4 py-2 rounded-full transition-colors ${
+                      location.startsWith(item.href)
+                        ? "bg-primary/15 text-primary"
+                        : "text-slate-600 hover:text-slate-900 hover:bg-white/70"
+                    }`}
+                  >
                     {item.label}
                   </a>
                 </Link>
@@ -50,21 +66,57 @@ export function Layout({ children }: { children: React.ReactNode }) {
           </div>
 
           <div className="flex items-center gap-4">
+            <div className="hidden md:flex items-center gap-3">
+              <button
+                type="button"
+                className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/70 border border-white/60 text-sm text-slate-600 hover:text-slate-900 hover:bg-white/90 transition-colors"
+                aria-label="Country selector"
+              >
+                <span className="text-sm font-semibold">DE</span>
+                <span>Region</span>
+                <Globe className="w-4 h-4 text-slate-400" />
+              </button>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/70 border border-white/60 text-sm text-slate-700 hover:text-slate-900 hover:bg-white/90 transition-colors"
+                    aria-label="Account menu"
+                  >
+                    <Avatar className="h-7 w-7">
+                      <AvatarFallback className="bg-primary/15 text-primary text-xs font-semibold">AP</AvatarFallback>
+                    </Avatar>
+                    <span className="font-medium">My account</span>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-44">
+                  <DropdownMenuItem asChild>
+                    <Link href="/cs/login">CS Login</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/customer/login">Customer Login</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/agency/login">Agency Login</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link href="/post-job">Post a Job</Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+
             <Link href="/post-job">
               <Button className="hidden md:flex font-semibold shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all bg-gradient-to-r from-primary via-sky-500 to-accent shine button-pop">
                 Post a Job
               </Button>
             </Link>
-            
+
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
               <SheetTrigger asChild>
-                <Button
-                  id="open-side-panel"
-                  variant="ghost"
-                  size="icon"
-                  className="md:hidden"
-                  aria-label="Open menu"
-                >
+                <Button id="open-side-panel" variant="ghost" size="icon" className="md:hidden" aria-label="Open menu">
                   <Menu className="w-6 h-6" />
                   <span className="sr-only">Open menu</span>
                 </Button>
@@ -73,11 +125,23 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 <div className="flex flex-col gap-4 mt-8">
                   {navItems.map((item) => (
                     <Link key={item.href} href={item.href} onClick={() => setIsOpen(false)}>
-                      <a className="text-lg font-medium p-2 block hover:bg-white/70 rounded-md">
-                        {item.label}
-                      </a>
+                      <a className="text-lg font-medium p-2 block hover:bg-white/70 rounded-md">{item.label}</a>
                     </Link>
                   ))}
+                  <div className="pt-2 border-t border-slate-200">
+                    <p className="text-xs uppercase tracking-widest text-slate-400 mb-2">Account</p>
+                    <div className="flex flex-col gap-2">
+                      <Link href="/cs/login" onClick={() => setIsOpen(false)}>
+                        <a className="text-sm font-medium p-2 block hover:bg-white/70 rounded-md">CS Login</a>
+                      </Link>
+                      <Link href="/customer/login" onClick={() => setIsOpen(false)}>
+                        <a className="text-sm font-medium p-2 block hover:bg-white/70 rounded-md">Customer Login</a>
+                      </Link>
+                      <Link href="/agency/login" onClick={() => setIsOpen(false)}>
+                        <a className="text-sm font-medium p-2 block hover:bg-white/70 rounded-md">Agency Login</a>
+                      </Link>
+                    </div>
+                  </div>
                   <Link href="/post-job" onClick={() => setIsOpen(false)}>
                     <Button className="w-full mt-4">Post a Job</Button>
                   </Link>
@@ -88,9 +152,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      <main className="flex-1">
-        {children}
-      </main>
+      <main className="flex-1">{children}</main>
 
       <footer className="bg-white/80 border-t border-white/40 backdrop-blur-lg py-12">
         <div className="container mx-auto px-4">
@@ -100,56 +162,87 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary to-sky-500 flex items-center justify-center shadow-sm">
                   <Briefcase className="w-3 h-3 text-white" />
                 </div>
-                <span className="font-bold font-display text-slate-900">
-                  {tenant?.name || "Projekt Gronland"}
-                </span>
+                <span className="font-bold font-display text-slate-900">{tenantName}</span>
               </div>
               <p className="text-sm text-slate-500 leading-relaxed">
-                Connecting talent with opportunity across the region. Find your dream job or the perfect candidate today.
+                Connecting talent with opportunity across the region. Find your dream job or the perfect candidate
+                today.
               </p>
             </div>
-            
+
             <div>
               <h2 className="font-semibold mb-4 text-base">For Candidates</h2>
               <ul className="space-y-2 text-sm text-slate-500">
-                <li><Link href="/jobs" className="hover:text-primary">Browse Jobs</Link></li>
-                <li><Link href="/companies" className="hover:text-primary">Browse Companies</Link></li>
-                <li><Link href="/faq" className="hover:text-primary">FAQ</Link></li>
+                <li>
+                  <Link href="/jobs" className="hover:text-primary">
+                    Browse Jobs
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/companies" className="hover:text-primary">
+                    Browse Companies
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/faq" className="hover:text-primary">
+                    FAQ
+                  </Link>
+                </li>
               </ul>
             </div>
 
             <div>
               <h2 className="font-semibold mb-4 text-base">For Employers</h2>
               <ul className="space-y-2 text-sm text-slate-500">
-                <li><Link href="/post-job" className="hover:text-primary">Post a Job</Link></li>
-                <li><Link href="/pricing" className="hover:text-primary">Pricing</Link></li>
-                <li><Link href="/about" className="hover:text-primary">About</Link></li>
+                <li>
+                  <Link href="/post-job" className="hover:text-primary">
+                    Post a Job
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/pricing" className="hover:text-primary">
+                    Pricing
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/about" className="hover:text-primary">
+                    About
+                  </Link>
+                </li>
               </ul>
             </div>
 
             <div>
-              <h2 className="font-semibold mb-4 text-base">Legal & Contact</h2>
+              <h2 className="font-semibold mb-4 text-base">Legal and Contact</h2>
               <ul className="space-y-2 text-sm text-slate-500">
-                <li><Link href="/contact" className="hover:text-primary">Contact</Link></li>
-                <li><Link href="/imprint" className="hover:text-primary">Impressum</Link></li>
-                <li><Link href="/privacy" className="hover:text-primary">Privacy</Link></li>
-                <li><Link href="/terms" className="hover:text-primary">Terms</Link></li>
+                <li>
+                  <Link href="/contact" className="hover:text-primary">
+                    Contact
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/imprint" className="hover:text-primary">
+                    Imprint
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/privacy" className="hover:text-primary">
+                    Privacy
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/terms" className="hover:text-primary">
+                    Terms
+                  </Link>
+                </li>
               </ul>
             </div>
           </div>
           <div className="border-t pt-8 text-center text-sm text-slate-400">
-            (c) {new Date().getFullYear()} {tenant?.name || "Projekt Gronland"}. All rights reserved.
+            (c) {new Date().getFullYear()} {tenantName}. All rights reserved.
           </div>
         </div>
       </footer>
     </div>
   );
 }
-
-
-
-
-
-
-
-
